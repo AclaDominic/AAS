@@ -43,37 +43,54 @@ class MailtrapService
         ?string $category = null
     ): array {
         if (empty($this->apiKey)) {
-            throw new \Exception('MAILTRAP_API_KEY is not set in .env file');
+            throw new \RuntimeException('MAILTRAP_API_KEY is not set in .env file. Please configure Mailtrap API key.');
         }
 
         if (empty($this->inboxId)) {
-            throw new \Exception('MAILTRAP_INBOX_ID is not set in .env file');
+            throw new \RuntimeException('MAILTRAP_INBOX_ID is not set in .env file. Please configure Mailtrap inbox ID.');
         }
 
         $fromEmail = $fromEmail ?? config('mail.from.address', 'hello@example.com');
         $fromName = $fromName ?? config('mail.from.name', 'Mailtrap Test');
 
-        $email = (new MailtrapEmail())
-            ->from(new Address($fromEmail, $fromName))
-            ->to(new Address($to))
-            ->subject($subject)
-            ->text($text);
+        try {
+            $email = (new MailtrapEmail())
+                ->from(new Address($fromEmail, $fromName))
+                ->to(new Address($to))
+                ->subject($subject)
+                ->text($text);
 
-        if ($html) {
-            $email->html($html);
+            if ($html) {
+                $email->html($html);
+            }
+
+            if ($category) {
+                $email->category($category);
+            }
+
+            $response = MailtrapClient::initSendingEmails(
+                apiKey: $this->apiKey,
+                isSandbox: $this->isSandbox,
+                inboxId: $this->inboxId
+            )->send($email);
+
+            return ResponseHelper::toArray($response);
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Mailtrap email sending failed', [
+                'to' => $to,
+                'subject' => $subject,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            // Re-throw as RuntimeException so queue can retry
+            throw new \RuntimeException(
+                'Failed to send email via Mailtrap: ' . $e->getMessage(),
+                $e->getCode(),
+                $e
+            );
         }
-
-        if ($category) {
-            $email->category($category);
-        }
-
-        $response = MailtrapClient::initSendingEmails(
-            apiKey: $this->apiKey,
-            isSandbox: $this->isSandbox,
-            inboxId: $this->inboxId
-        )->send($email);
-
-        return ResponseHelper::toArray($response);
     }
 }
 

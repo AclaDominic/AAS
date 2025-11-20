@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Member;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -18,7 +19,7 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): Response
+    public function store(Request $request): JsonResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -32,7 +33,24 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->string('password')),
         ]);
 
+        // Automatically make all registered users members
+        Member::create([
+            'user_id' => $user->id,
+        ]);
+
         event(new Registered($user));
+
+        // Send email verification notification (queued)
+        // Wrap in try-catch to ensure registration doesn't fail if email queue fails
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Exception $e) {
+            // Log the error but don't fail registration
+            \Log::warning('Failed to queue email verification notification', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         Auth::login($user);
 
@@ -48,6 +66,7 @@ class RegisteredUserController extends Controller
                 'is_member' => $user->isMember(),
             ],
             'token' => $token,
+            'message' => 'Registration successful! Please check your email for the verification link. The email may take a few moments to arrive.',
         ], 201);
     }
 }

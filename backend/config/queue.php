@@ -42,6 +42,10 @@ return [
             'queue' => env('DB_QUEUE', 'default'),
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
             'after_commit' => false,
+            // Maximum number of retry attempts for failed jobs
+            'max_tries' => env('QUEUE_MAX_TRIES', 3),
+            // Timeout in seconds before a job is considered failed
+            'timeout' => env('QUEUE_TIMEOUT', 60),
         ],
 
         'beanstalkd' => [
