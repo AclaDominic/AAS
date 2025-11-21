@@ -57,6 +57,38 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the membership subscriptions for the user.
+     */
+    public function membershipSubscriptions()
+    {
+        return $this->hasMany(MembershipSubscription::class);
+    }
+
+    /**
+     * Get the promo usages for the user.
+     */
+    public function promoUsages()
+    {
+        return $this->hasMany(UserPromoUsage::class);
+    }
+
+    /**
+     * Get the discount usages for the user.
+     */
+    public function discountUsages()
+    {
+        return $this->hasMany(UserDiscountUsage::class);
+    }
+
+    /**
+     * Get the payments for the user.
+     */
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
      * Check if the user is a member.
      */
     public function isMember(): bool
@@ -80,5 +112,31 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendEmailVerificationNotification()
     {
         $this->notify(new VerifyEmail);
+    }
+
+    /**
+     * Check if the user is eligible for first-time discounts.
+     * User is eligible ONLY if:
+     * - They have never purchased any membership subscription
+     * - They have never used any promo
+     * - They have never used any first-time discount
+     */
+    public function isEligibleForFirstTimeDiscount(): bool
+    {
+        return $this->membershipSubscriptions()->count() === 0
+            && $this->promoUsages()->count() === 0
+            && $this->discountUsages()->count() === 0;
+    }
+
+    /**
+     * Check if the user is eligible for new user promos.
+     * User is eligible ONLY if:
+     * - They have never purchased any membership subscription
+     * - They have never used any promo
+     * - They have never used any first-time discount
+     */
+    public function isEligibleForNewUserPromo(): bool
+    {
+        return $this->isEligibleForFirstTimeDiscount();
     }
 }

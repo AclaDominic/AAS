@@ -46,3 +46,27 @@ Artisan::command('send-mail', function () {
 
     return 0;
 })->purpose('Send Mail via Mailtrap API');
+
+Artisan::command('payments:cancel-old', function () {
+    $cutoffDate = now()->subDays(15);
+    
+    $count = \App\Models\Payment::where('status', 'PENDING')
+        ->where('created_at', '<', $cutoffDate)
+        ->count();
+
+    if ($count === 0) {
+        $this->info('No pending payments older than 15 days found.');
+        return 0;
+    }
+
+    $updated = \App\Models\Payment::where('status', 'PENDING')
+        ->where('created_at', '<', $cutoffDate)
+        ->update([
+            'status' => 'CANCELLED',
+            'payment_code' => null, // Clear payment code when auto-cancelled
+        ]);
+
+    $this->info("Successfully cancelled {$updated} pending payment(s) older than 15 days.");
+
+    return 0;
+})->purpose('Cancel pending payments older than 15 days');

@@ -37,5 +37,12 @@ class DatabaseSeeder extends Seeder
         Member::create([
             'user_id' => $member->id,
         ]);
+
+        // Seed membership offers, promos, and first-time discounts
+        $this->call([
+            MembershipOfferSeeder::class,
+            PromoSeeder::class,
+            FirstTimeDiscountSeeder::class,
+        ]);
     }
 }
