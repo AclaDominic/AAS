@@ -115,6 +115,17 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the mailer that should be used for notifications.
+     *
+     * @return string|null
+     */
+    public function preferredMailer(): ?string
+    {
+        // Use the default mailer from config
+        return config('mail.default');
+    }
+
+    /**
      * Check if the user is eligible for first-time discounts.
      * User is eligible ONLY if:
      * - They have never purchased any membership subscription

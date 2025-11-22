@@ -42,16 +42,37 @@ class MailtrapService
         string $fromName = null,
         ?string $category = null
     ): array {
+        // Log email sending attempt
+        \Log::info('MailtrapService: Starting email send', [
+            'to' => $to,
+            'subject' => $subject,
+            'has_html' => !empty($html),
+            'has_text' => !empty($text),
+            'category' => $category,
+            'from_email' => $fromEmail,
+            'from_name' => $fromName,
+        ]);
+
         if (empty($this->apiKey)) {
+            \Log::error('MailtrapService: MAILTRAP_API_KEY is not set');
             throw new \RuntimeException('MAILTRAP_API_KEY is not set in .env file. Please configure Mailtrap API key.');
         }
 
         if (empty($this->inboxId)) {
+            \Log::error('MailtrapService: MAILTRAP_INBOX_ID is not set');
             throw new \RuntimeException('MAILTRAP_INBOX_ID is not set in .env file. Please configure Mailtrap inbox ID.');
         }
 
         $fromEmail = $fromEmail ?? config('mail.from.address', 'hello@example.com');
         $fromName = $fromName ?? config('mail.from.name', 'Mailtrap Test');
+
+        // Log configuration before API call (sanitize API key)
+        \Log::info('MailtrapService: Preparing to send email via API', [
+            'inbox_id' => $this->inboxId,
+            'is_sandbox' => $this->isSandbox,
+            'api_key_set' => !empty($this->apiKey),
+            'api_key_length' => strlen($this->apiKey),
+        ]);
 
         try {
             $email = (new MailtrapEmail())
@@ -74,13 +95,31 @@ class MailtrapService
                 inboxId: $this->inboxId
             )->send($email);
 
-            return ResponseHelper::toArray($response);
-        } catch (\Exception $e) {
-            // Log the error for debugging
-            \Log::error('Mailtrap email sending failed', [
+            $responseArray = ResponseHelper::toArray($response);
+
+            // Log successful send
+            \Log::info('MailtrapService: Email sent successfully', [
                 'to' => $to,
                 'subject' => $subject,
+                'response' => $responseArray,
+            ]);
+
+            return $responseArray;
+        } catch (\Exception $e) {
+            // Enhanced error logging with more context
+            \Log::error('MailtrapService: Email sending failed', [
+                'to' => $to,
+                'subject' => $subject,
+                'from_email' => $fromEmail,
+                'from_name' => $fromName,
+                'has_html' => !empty($html),
+                'has_text' => !empty($text),
+                'category' => $category,
+                'inbox_id' => $this->inboxId,
+                'is_sandbox' => $this->isSandbox,
                 'error' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_class' => get_class($e),
                 'trace' => $e->getTraceAsString(),
             ]);
 

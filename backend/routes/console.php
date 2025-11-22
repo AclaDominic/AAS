@@ -12,16 +12,14 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Artisan::command('send-mail', function () {
-    $apiKey = env('MAILTRAP_API_KEY');
-    $isSandbox = env('MAILTRAP_SANDBOX', true);
-    $inboxId = env('MAILTRAP_INBOX_ID');
-
-    if (!$apiKey) {
+    $config = config('services.mailtrap-sdk');
+    
+    if (!$config['apiKey']) {
         $this->error('MAILTRAP_API_KEY is not set in .env file');
         return 1;
     }
 
-    if (!$inboxId) {
+    if (!$config['inboxId']) {
         $this->error('MAILTRAP_INBOX_ID is not set in .env file');
         return 1;
     }
@@ -35,9 +33,9 @@ Artisan::command('send-mail', function () {
     ;
 
     $response = MailtrapClient::initSendingEmails(
-        apiKey: $apiKey,
-        isSandbox: filter_var($isSandbox, FILTER_VALIDATE_BOOLEAN),
-        inboxId: (int) $inboxId
+        apiKey: $config['apiKey'],
+        isSandbox: $config['sandbox'],
+        inboxId: (int) $config['inboxId']
     )->send($email);
 
     $this->info('Email sent successfully!');

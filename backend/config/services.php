@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'mailtrap-sdk' => [
+        'host' => env('MAILTRAP_HOST', env('MAILTRAP_SANDBOX', false) ? 'sandbox.api.mailtrap.io' : 'send.api.mailtrap.io'),
+        'apiKey' => env('MAILTRAP_API_KEY'),
+        'inboxId' => env('MAILTRAP_INBOX_ID'),
+        'sandbox' => (bool) env('MAILTRAP_SANDBOX', false),
+    ],
+
 ];
