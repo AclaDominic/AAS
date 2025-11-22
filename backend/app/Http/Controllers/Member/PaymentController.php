@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Member;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Member\StorePaymentRequest;
+use App\Models\BillingStatement;
 use App\Models\FirstTimeDiscount;
 use App\Models\MembershipOffer;
+use App\Models\MembershipSubscription;
 use App\Models\Payment;
 use App\Models\Promo;
 use App\Models\UserPromoUsage;
@@ -306,5 +308,92 @@ class PaymentController extends Controller
         }
 
         return $subscription;
+    }
+
+    /**
+     * Process bulk payment for multiple pending renewals.
+     */
+    public function bulkPay(Request $request): JsonResponse
+    {
+        $request->validate([
+            'subscription_ids' => ['required', 'array', 'min:1'],
+            'subscription_ids.*' => ['exists:membership_subscriptions,id'],
+            'payment_method' => ['required', 'in:ONLINE_MAYA,ONLINE_CARD'],
+        ]);
+
+        $user = $request->user();
+        $subscriptionIds = $request->subscription_ids;
+
+        // Verify all subscriptions belong to the user and are due for renewal
+        $subscriptions = MembershipSubscription::where('user_id', $user->id)
+            ->whereIn('id', $subscriptionIds)
+            ->where('status', 'ACTIVE')
+            ->where('is_recurring', true)
+            ->with('membershipOffer')
+            ->get();
+
+        if ($subscriptions->count() !== count($subscriptionIds)) {
+            return response()->json([
+                'message' => 'Some subscriptions are invalid or not eligible for renewal.',
+            ], 400);
+        }
+
+        // Calculate total amount
+        $totalAmount = $subscriptions->sum(function ($subscription) {
+            return $subscription->membershipOffer->price;
+        });
+
+        try {
+            DB::beginTransaction();
+
+            $payments = [];
+            foreach ($subscriptions as $subscription) {
+                    // Find or create billing statement
+                    $billingStatement = BillingStatement::where('membership_subscription_id', $subscription->id)
+                    ->where('status', 'PENDING')
+                    ->first();
+
+                if (!$billingStatement) {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => 'Billing statement not found for one or more subscriptions.',
+                    ], 400);
+                }
+
+                // Create payment
+                $payment = Payment::create([
+                    'user_id' => $user->id,
+                    'membership_offer_id' => $subscription->membership_offer_id,
+                    'payment_method' => $request->payment_method,
+                    'amount' => $subscription->membershipOffer->price,
+                    'status' => 'PAID', // For online payments, mark as paid immediately
+                    'payment_date' => now(),
+                ]);
+
+                // Link payment to billing statement
+                $billingStatement->payment_id = $payment->id;
+                $billingStatement->status = 'PAID';
+                $billingStatement->save();
+
+                // Create subscription renewal
+                $this->createSubscription($payment, $user, $subscription->membershipOffer, null, null, $payment->amount);
+
+                $payments[] = $payment;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Bulk payment processed successfully!',
+                'payments' => $payments,
+                'total_amount' => $totalAmount,
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to process bulk payment.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

@@ -20,6 +20,11 @@ function AdminSidebar() {
       icon: '📊',
     },
     {
+      path: '/admin/members',
+      label: 'Members Management',
+      icon: '👥',
+    },
+    {
       path: '/admin/offers',
       label: 'Offers Management',
       icon: '🎁',
@@ -29,12 +34,12 @@ function AdminSidebar() {
       label: 'Payments',
       icon: '💳',
     },
+    {
+      path: '/admin/reports',
+      label: 'Reports',
+      icon: '📊',
+    },
     // Add more navigation items here as needed
-    // {
-    //   path: '/admin/users',
-    //   label: 'Users',
-    //   icon: '👥',
-    // },
     // {
     //   path: '/admin/settings',
     //   label: 'Settings',

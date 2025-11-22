@@ -7,6 +7,8 @@ import Membership from './pages/member/Membership'
 import Billing from './pages/member/Billing'
 import OffersManagement from './pages/admin/OffersManagement'
 import Payments from './pages/admin/Payments'
+import MembersManagement from './pages/admin/MembersManagement'
+import Reports from './pages/admin/Reports'
 import './App.css'
 
 function ProtectedRoute({ children }) {
@@ -66,6 +68,22 @@ function App() {
           element={
             <ProtectedRoute>
               <Payments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/members"
+          element={
+            <ProtectedRoute>
+              <MembersManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reports"
+          element={
+            <ProtectedRoute>
+              <Reports />
             </ProtectedRoute>
           }
         />

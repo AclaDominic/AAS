@@ -44,5 +44,11 @@ class DatabaseSeeder extends Seeder
             PromoSeeder::class,
             FirstTimeDiscountSeeder::class,
         ]);
+
+        // Seed test data for new features (billing, subscriptions, payments, etc.)
+        // Comment out this line if you don't want test data
+        $this->call([
+            TestDataSeeder::class,
+        ]);
     }
 }

@@ -51,6 +51,11 @@ class Payment extends Model
         return $this->hasOne(MembershipSubscription::class);
     }
 
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(Receipt::class);
+    }
+
     /**
      * Generate a unique 8-character alphanumeric payment code.
      */

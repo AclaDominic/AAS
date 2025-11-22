@@ -150,4 +150,199 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->isEligibleForFirstTimeDiscount();
     }
+
+    /**
+     * Get all active subscriptions for the user.
+     */
+    public function getActiveSubscriptions()
+    {
+        return $this->membershipSubscriptions()
+            ->where('status', 'ACTIVE')
+            ->with(['membershipOffer', 'promo', 'firstTimeDiscount'])
+            ->get()
+            ->filter(function ($subscription) {
+                // Filter out subscriptions with null membershipOffer
+                return $subscription->membershipOffer !== null;
+            });
+    }
+
+    /**
+     * Calculate overall membership status.
+     * Returns: 'active', 'inactive', or 'expired'
+     */
+    public function getMembershipStatus(): string
+    {
+        // Handle case where user has no subscriptions
+        if (!$this->membershipSubscriptions()->exists()) {
+            return 'inactive';
+        }
+
+        // Check for active subscriptions with valid data
+        $activeSubscriptions = $this->membershipSubscriptions()
+            ->where('status', 'ACTIVE')
+            ->with('membershipOffer')
+            ->get()
+            ->filter(function ($subscription) {
+                // Filter out subscriptions with null membershipOffer or invalid dates
+                return $subscription->membershipOffer !== null 
+                    && $subscription->end_date !== null
+                    && $subscription->end_date instanceof \Carbon\Carbon;
+            });
+
+        if ($activeSubscriptions->count() > 0) {
+            return 'active';
+        }
+
+        // Check for expired subscriptions
+        $hasExpired = $this->membershipSubscriptions()
+            ->where('status', 'EXPIRED')
+            ->exists();
+
+        return $hasExpired ? 'expired' : 'inactive';
+    }
+
+    /**
+     * Calculate total amount paid by the user.
+     */
+    public function getTotalSpent(): float
+    {
+        $total = $this->payments()
+            ->where('status', 'PAID')
+            ->sum('amount');
+        
+        return $total ? (float) $total : 0.0;
+    }
+
+    /**
+     * Get total amount paid.
+     */
+    public function getTotalPaid(): float
+    {
+        return $this->getTotalSpent();
+    }
+
+    /**
+     * Get total amount owed (pending billing statements for subscriptions expiring in 5 days).
+     */
+    public function getTotalOwed(): float
+    {
+        // Calculate from pending billing statements if they exist
+        if (class_exists(\App\Models\BillingStatement::class)) {
+            $total = \App\Models\BillingStatement::where('user_id', $this->id)
+                ->where('status', 'PENDING')
+                ->sum('amount');
+            
+            if ($total) {
+                return (float) $total;
+            }
+        }
+        
+        // Fallback: calculate from subscriptions expiring in 5 days
+        $fiveDaysFromNow = now()->addDays(5);
+        
+        return $this->membershipSubscriptions()
+            ->where('status', 'ACTIVE')
+            ->where('is_recurring', true)
+            ->whereNotNull('end_date')
+            ->where('end_date', '<=', $fiveDaysFromNow)
+            ->where('end_date', '>=', now())
+            ->with('membershipOffer')
+            ->get()
+            ->filter(function ($subscription) {
+                // Filter out subscriptions with null membershipOffer
+                return $subscription->membershipOffer !== null;
+            })
+            ->sum(function ($subscription) {
+                return $subscription->membershipOffer->price ?? 0;
+            });
+    }
+
+    /**
+     * Get pending renewal amount (subscriptions expiring within 5 days).
+     */
+    public function getPendingRenewalAmount(): float
+    {
+        // Null checks for subscriptions
+        if (!$this->membershipSubscriptions()->exists()) {
+            return 0.0;
+        }
+
+        $fiveDaysFromNow = now()->addDays(5);
+        
+        return $this->membershipSubscriptions()
+            ->where('status', 'ACTIVE')
+            ->where('is_recurring', true)
+            ->whereNotNull('end_date')
+            ->where('end_date', '<=', $fiveDaysFromNow)
+            ->where('end_date', '>=', now())
+            ->with('membershipOffer')
+            ->get()
+            ->filter(function ($subscription) {
+                // Filter out subscriptions with null membershipOffer or invalid dates
+                return $subscription->membershipOffer !== null
+                    && $subscription->end_date !== null
+                    && $subscription->end_date instanceof \Carbon\Carbon;
+            })
+            ->sum(function ($subscription) {
+                return $subscription->membershipOffer->price ?? 0;
+            });
+    }
+
+    /**
+     * Get active subscriptions count by category.
+     */
+    public function getActiveSubscriptionsCount(): array
+    {
+        // Handle case where user has no subscriptions
+        if (!$this->membershipSubscriptions()->exists()) {
+            return [];
+        }
+
+        return $this->membershipSubscriptions()
+            ->where('status', 'ACTIVE')
+            ->with('membershipOffer')
+            ->get()
+            ->filter(function ($subscription) {
+                // Filter out subscriptions with null membershipOffer or invalid dates
+                return $subscription->membershipOffer !== null
+                    && $subscription->end_date !== null
+                    && $subscription->end_date instanceof \Carbon\Carbon;
+            })
+            ->groupBy(function ($subscription) {
+                return $subscription->membershipOffer->category ?? 'UNKNOWN';
+            })
+            ->map(function ($group) {
+                return $group->count();
+            })
+            ->toArray();
+    }
+
+    /**
+     * Scope to filter users by membership status.
+     */
+    public function scopeWithMembershipStatus($query, $status)
+    {
+        return $query->whereHas('membershipSubscriptions', function ($q) use ($status) {
+            if ($status === 'active') {
+                $q->where('status', 'ACTIVE');
+            } elseif ($status === 'expired') {
+                $q->where('status', 'EXPIRED');
+            } elseif ($status === 'inactive') {
+                $q->whereNotIn('status', ['ACTIVE', 'EXPIRED']);
+            }
+        }, $status === 'inactive' ? '=' : '>', 0);
+    }
+
+    /**
+     * Scope to filter users by membership category.
+     */
+    public function scopeWithMembershipCategory($query, $category)
+    {
+        return $query->whereHas('membershipSubscriptions', function ($q) use ($category) {
+            $q->where('status', 'ACTIVE')
+              ->whereHas('membershipOffer', function ($offerQuery) use ($category) {
+                  $offerQuery->where('category', $category);
+              });
+        });
+    }
 }

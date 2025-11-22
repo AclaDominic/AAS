@@ -142,5 +142,48 @@ export const offersService = {
     })
     return response.data
   },
+
+  // Get pending renewals
+  async getPendingRenewals() {
+    const response = await api.get('/api/memberships/pending-renewals')
+    return response.data
+  },
+
+  // Bulk payment for multiple renewals
+  async bulkPay(data) {
+    const response = await api.post('/api/payments/bulk-pay', data)
+    return response.data
+  },
+
+  // Download receipt
+  async downloadReceipt(id) {
+    const response = await api.get(`/api/payments/${id}/receipt`, {
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
+  // Download invoice
+  async downloadInvoice(id) {
+    const response = await api.get(`/api/billing/statements/${id}/invoice`, {
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
+  // Get billing statements for member
+  async getBillingStatements() {
+    const response = await api.get('/api/billing/statements')
+    return response.data
+  },
+
+  // Admin: Generate billing statements
+  async generateBillingStatements(startDate, endDate) {
+    const response = await api.post('/api/admin/billing/generate-statements', {
+      start_date: startDate,
+      end_date: endDate,
+    })
+    return response.data
+  },
 }
 

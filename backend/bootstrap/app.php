@@ -34,6 +34,19 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
+        // Update expired subscriptions daily at midnight
+        $schedule->command('subscriptions:update-expired')
+            ->daily()
+            ->at('00:00');
+        
+        // Process recurring billing daily at 1:00 AM (check for subscriptions expiring in 5 days)
+        // This automatically generates billing statements and sends notifications
+        $schedule->job(\App\Jobs\ProcessRecurringBilling::class)
+            ->daily()
+            ->at('01:00')
+            ->name('process-recurring-billing')
+            ->withoutOverlapping();
+        
         // Automatically cancel pending payments older than 15 days
         $schedule->call(function () {
             \App\Models\Payment::where('status', 'PENDING')
@@ -42,7 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'status' => 'CANCELLED',
                     'payment_code' => null, // Clear payment code when auto-cancelled
                 ]);
-        })->daily(); // Run daily at midnight
+        })->daily()->at('02:00'); // Run daily at 2:00 AM
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\BillingController as AdminBillingController;
 use App\Http\Controllers\Admin\FirstTimeDiscountController;
+use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MembershipOfferController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\PromoController;
+use App\Http\Controllers\Member\BillingController as MemberBillingController;
 use App\Http\Controllers\Member\MembershipController;
 use App\Http\Controllers\Member\PaymentController;
 use App\Http\Controllers\OfferController;
@@ -35,6 +38,24 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     // Payments
     Route::get('/payments/code/{code}', [AdminPaymentController::class, 'findByCode']);
     Route::post('/payments/{id}/mark-paid', [AdminPaymentController::class, 'markAsPaid']);
+    
+    // Members
+    Route::get('/members', [MemberController::class, 'index']);
+    Route::get('/members/stats', [MemberController::class, 'stats']);
+    Route::get('/members/{id}', [MemberController::class, 'show']);
+    
+    // Billing
+    Route::post('/billing/generate-statements', [AdminBillingController::class, 'generateStatements']);
+    Route::get('/billing/statements', [AdminBillingController::class, 'index']);
+    Route::get('/billing/statements/{id}', [AdminBillingController::class, 'show']);
+    Route::get('/billing/statements/{id}/invoice', [AdminBillingController::class, 'downloadInvoice']);
+    Route::get('/payments/{id}/receipt', [AdminBillingController::class, 'downloadReceipt']);
+    
+    // Reports
+    Route::get('/reports/payment-history', [\App\Http\Controllers\Admin\ReportsController::class, 'paymentHistory']);
+    Route::get('/reports/customer-balances', [\App\Http\Controllers\Admin\ReportsController::class, 'customerBalances']);
+    Route::get('/reports/payments-summary', [\App\Http\Controllers\Admin\ReportsController::class, 'paymentsSummary']);
+    Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportsController::class, 'export']);
 });
 
 // Public/Member routes
@@ -60,4 +81,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/payments/pending', [PaymentController::class, 'getPendingPayments']);
     Route::post('/payments/{id}/cancel', [PaymentController::class, 'cancelPayment']);
     Route::post('/payments/{id}/process-online', [PaymentController::class, 'processOnlinePayment']);
+    
+    // Billing
+    Route::get('/memberships/pending-renewals', [MemberBillingController::class, 'getPendingRenewals']);
+    Route::get('/billing/statements', [MemberBillingController::class, 'getStatements']);
+    Route::get('/billing/statements/{id}/invoice', [MemberBillingController::class, 'downloadInvoice']);
+    Route::get('/payments/{id}/receipt', [MemberBillingController::class, 'downloadReceipt']);
+    
+    // Bulk Payment
+    Route::post('/payments/bulk-pay', [PaymentController::class, 'bulkPay']);
 });

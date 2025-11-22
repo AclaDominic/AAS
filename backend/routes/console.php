@@ -68,3 +68,37 @@ Artisan::command('payments:cancel-old', function () {
 
     return 0;
 })->purpose('Cancel pending payments older than 15 days');
+
+Artisan::command('subscriptions:update-expired', function () {
+    $updatedCount = \App\Models\MembershipSubscription::updateExpiredSubscriptions();
+    
+    if ($updatedCount === 0) {
+        $this->info('No subscriptions needed expiration status update.');
+        return 0;
+    }
+
+    $this->info("Successfully updated {$updatedCount} subscription(s) to EXPIRED status.");
+    return 0;
+})->purpose('Update subscription status to EXPIRED for subscriptions past their end_date');
+
+Artisan::command('billing:generate-statements', function () {
+    $this->info('Processing recurring billing statements...');
+    $this->info('Checking for subscriptions expiring within 5 days...');
+    
+    try {
+        // Instantiate and run the job synchronously
+        $job = new \App\Jobs\ProcessRecurringBilling();
+        $job->handle();
+        
+        $this->info('✓ Billing statement generation completed successfully.');
+        $this->info('Check the application logs for details on generated statements.');
+        return 0;
+    } catch (\Exception $e) {
+        $this->error('✗ Failed to generate billing statements: ' . $e->getMessage());
+        \Log::error('Billing generation command failed', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+        return 1;
+    }
+})->purpose('Manually trigger billing statement generation for subscriptions expiring in 5 days');

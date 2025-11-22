@@ -5,19 +5,30 @@ import MemberLayout from '../../components/layout/MemberLayout'
 function Billing() {
   const [activeTab, setActiveTab] = useState('pending')
   const [allPayments, setAllPayments] = useState([])
+  const [billingStatements, setBillingStatements] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadPayments()
+    loadBillingStatements()
   }, [])
 
   const loadPayments = async () => {
     try {
-      setLoading(true)
       const data = await offersService.getAllPayments()
       setAllPayments(data)
     } catch (error) {
       console.error('Error loading payments:', error)
+    }
+  }
+
+  const loadBillingStatements = async () => {
+    try {
+      const data = await offersService.getBillingStatements()
+      setBillingStatements(data || [])
+    } catch (error) {
+      console.error('Error loading billing statements:', error)
+      setBillingStatements([])
     } finally {
       setLoading(false)
     }
@@ -46,10 +57,41 @@ function Billing() {
     try {
       await offersService.processOnlinePayment(id)
       loadPayments()
+      loadBillingStatements()
       alert('Payment processed successfully! Your membership is now active.')
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to process payment'
       alert(errorMessage)
+    }
+  }
+
+  const handleDownloadInvoice = async (statementId) => {
+    try {
+      const blob = await offersService.downloadInvoice(statementId)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `invoice-${statementId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error downloading invoice:', error)
+      alert('Failed to download invoice. Please try again.')
+    }
+  }
+
+  const getStatementStatusColor = (status) => {
+    switch (status) {
+      case 'PAID':
+        return '#28a745'
+      case 'PENDING':
+        return '#ff6b35'
+      case 'OVERDUE':
+        return '#dc3545'
+      default:
+        return '#6c757d'
     }
   }
 
@@ -177,10 +219,149 @@ function Billing() {
             >
               History {historyPayments.length > 0 && `(${historyPayments.length})`}
             </button>
+            <button
+              onClick={() => setActiveTab('statements')}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: activeTab === 'statements' ? '#646cff' : 'transparent',
+                color: activeTab === 'statements' ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                border: 'none',
+                borderBottom: activeTab === 'statements' ? '3px solid #ff6b35' : '3px solid transparent',
+                borderRadius: '6px 6px 0 0',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: activeTab === 'statements' ? 'bold' : 'normal',
+                transition: 'all 0.2s',
+              }}
+            >
+              Billing Statements {billingStatements.length > 0 && `(${billingStatements.length})`}
+            </button>
           </div>
 
           {/* Tab Content */}
-          {currentPayments.length === 0 ? (
+          {activeTab === 'statements' ? (
+            billingStatements.length === 0 ? (
+              <div style={{
+                padding: '40px',
+                textAlign: 'center',
+                backgroundColor: 'rgba(100, 108, 255, 0.1)',
+                borderRadius: '12px',
+                color: '#ffffff',
+              }}>
+                <p style={{ fontSize: '1.2rem' }}>No billing statements found.</p>
+                <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                  Billing statements will appear here when your membership is up for renewal.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {billingStatements.map((statement) => (
+                  <div
+                    key={statement.id}
+                    style={{
+                      backgroundColor: 'rgba(100, 108, 255, 0.1)',
+                      borderRadius: '12px',
+                      padding: '25px',
+                      border: '1px solid rgba(100, 108, 255, 0.3)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
+                          <h3 style={{ color: '#ffffff', margin: 0, fontSize: '1.5rem' }}>
+                            {statement.membership_subscription?.membership_offer?.name || 'Membership Renewal'}
+                          </h3>
+                          <span
+                            style={{
+                              padding: '4px 12px',
+                              backgroundColor: getStatementStatusColor(statement.status) + '20',
+                              color: getStatementStatusColor(statement.status),
+                              borderRadius: '6px',
+                              fontSize: '0.85rem',
+                              fontWeight: 'bold',
+                              border: `1px solid ${getStatementStatusColor(statement.status)}40`,
+                            }}
+                          >
+                            {statement.status}
+                          </span>
+                        </div>
+                        <div style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '5px' }}>
+                          Statement Date: {formatDate(statement.statement_date)}
+                        </div>
+                        {statement.period_start && statement.period_end && (
+                          <div style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '5px' }}>
+                            Period: {formatDate(statement.period_start)} - {formatDate(statement.period_end)}
+                          </div>
+                        )}
+                        {statement.due_date && (
+                          <div style={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: '5px' }}>
+                            Due Date: {formatDate(statement.due_date)}
+                          </div>
+                        )}
+                        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+                          <button
+                            onClick={() => handleDownloadInvoice(statement.id)}
+                            style={{
+                              padding: '8px 16px',
+                              backgroundColor: '#646cff',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '0.9rem',
+                            }}
+                          >
+                            {statement.invoice ? 'Download Invoice' : 'Generate & Download Invoice'}
+                          </button>
+                          {statement.payment && statement.payment.status === 'PAID' && (
+                            <button
+                              onClick={async () => {
+                                try {
+                                  const blob = await offersService.downloadReceipt(statement.payment.id)
+                                  const url = window.URL.createObjectURL(blob)
+                                  const link = document.createElement('a')
+                                  link.href = url
+                                  link.setAttribute('download', `receipt-${statement.payment.id}.pdf`)
+                                  document.body.appendChild(link)
+                                  link.click()
+                                  link.remove()
+                                  window.URL.revokeObjectURL(url)
+                                } catch (err) {
+                                  console.error('Error downloading receipt:', err)
+                                  alert('Failed to download receipt. Please try again.')
+                                }
+                              }}
+                              style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#28a745',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                              }}
+                            >
+                              Download Receipt
+                            </button>
+                          )}
+                        </div>
+                        {statement.payment && (
+                          <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem', marginTop: '10px' }}>
+                            Payment Code: {statement.payment.payment_code || 'N/A'}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ textAlign: 'right', minWidth: '200px' }}>
+                        <div style={{ color: '#ffffff', fontSize: '2rem', fontWeight: 'bold', marginBottom: '10px' }}>
+                          {formatPrice(statement.amount)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          ) : currentPayments.length === 0 ? (
             <div style={{
               padding: '40px',
               textAlign: 'center',
