@@ -42,4 +42,30 @@ return [
         'sandbox' => (bool) env('MAILTRAP_SANDBOX', false),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Maya Payment Gateway Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Set these values in your .env file:
+    |
+    | MAYA_SANDBOX=true
+    | MAYA_PUBLIC_KEY=pk-eo4sL393CWU5KmveJUaW8V730TTei2zY8zE4dHJDxkF
+    | MAYA_SECRET_KEY=sk-KfmfLJXFdV5t1inYN8lIOwSrueC1G27SCAklBqYCdrU
+    |
+    | Sandbox Party 2 (CHECKOUT, VAULT, INVOICE enabled):
+    | - The Maya Checkout page automatically displays all enabled payment methods
+    | - Maya Wallet: Users can login with their Maya account to pay
+    | - Credit/Debit Cards: Users can enter card details directly
+    |
+    */
+    'maya' => [
+        'sandbox' => env('MAYA_SANDBOX', true),
+        'public_key' => env('MAYA_PUBLIC_KEY'),
+        'secret_key' => env('MAYA_SECRET_KEY'),
+        'base_url' => env('MAYA_SANDBOX', true) 
+            ? 'https://pg-sandbox.paymaya.com' 
+            : 'https://pg.paymaya.com',
+    ],
+
 ];

@@ -49,16 +49,24 @@ function Billing() {
     }
   }
 
-  const handlePayOnline = async (id) => {
-    if (!confirm('Process this payment online now?')) {
+  const handlePayOnline = async (id, paymentMethodPreference = null) => {
+    if (!confirm('Process this payment online now using Credit/Debit Card? You will be redirected to Maya to complete the payment.')) {
       return
     }
 
     try {
-      await offersService.processOnlinePayment(id)
-      loadPayments()
-      loadBillingStatements()
-      alert('Payment processed successfully! Your membership is now active.')
+      // Always use CARD payment method preference
+      const result = await offersService.processOnlinePayment(id, 'CARD')
+      
+      // If checkout URL is returned, redirect to Maya
+      if (result.checkout_url) {
+        window.location.href = result.checkout_url
+      } else {
+        // Payment was processed immediately (shouldn't happen with Maya, but handle it)
+        loadPayments()
+        loadBillingStatements()
+        alert('Payment processed successfully! Your membership is now active.')
+      }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to process payment'
       alert(errorMessage)
@@ -79,6 +87,23 @@ function Billing() {
     } catch (error) {
       console.error('Error downloading invoice:', error)
       alert('Failed to download invoice. Please try again.')
+    }
+  }
+
+  const handleDownloadReceipt = async (paymentId) => {
+    try {
+      const blob = await offersService.downloadReceipt(paymentId)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `receipt-${paymentId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Error downloading receipt:', err)
+      alert('Failed to download receipt. Please try again.')
     }
   }
 
@@ -315,22 +340,7 @@ function Billing() {
                           </button>
                           {statement.payment && statement.payment.status === 'PAID' && (
                             <button
-                              onClick={async () => {
-                                try {
-                                  const blob = await offersService.downloadReceipt(statement.payment.id)
-                                  const url = window.URL.createObjectURL(blob)
-                                  const link = document.createElement('a')
-                                  link.href = url
-                                  link.setAttribute('download', `receipt-${statement.payment.id}.pdf`)
-                                  document.body.appendChild(link)
-                                  link.click()
-                                  link.remove()
-                                  window.URL.revokeObjectURL(url)
-                                } catch (err) {
-                                  console.error('Error downloading receipt:', err)
-                                  alert('Failed to download receipt. Please try again.')
-                                }
-                              }}
+                              onClick={() => handleDownloadReceipt(statement.payment.id)}
                               style={{
                                 padding: '8px 16px',
                                 backgroundColor: '#28a745',
@@ -436,13 +446,15 @@ function Billing() {
                           display: 'inline-block',
                         }}>
                           <div style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.9rem' }}>
-                            Payment Code:
+                            Reference Code:
                           </div>
                           <div style={{ color: '#ff6b35', fontSize: '1.5rem', fontWeight: 'bold', fontFamily: 'monospace' }}>
                             {payment.payment_code}
                           </div>
                           <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.8rem', marginTop: '5px' }}>
-                            Bring this code when paying in person
+                            {payment.payment_method === 'CASH' || payment.payment_method === 'CASH_WALKIN' 
+                              ? 'Bring this code when paying in person'
+                              : 'Use this code to pay walk-in or keep for your records'}
                           </div>
                         </div>
                       )}
@@ -467,50 +479,15 @@ function Billing() {
 
                   {/* Action Buttons - Only show in Pending tab */}
                   {activeTab === 'pending' && (
-                    <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                      {payment.payment_method === 'CASH' || payment.payment_method === 'CASH_WALKIN' ? (
-                        <>
-                          <button
-                            onClick={() => handlePayOnline(payment.id)}
-                            style={{
-                              padding: '10px 20px',
-                              backgroundColor: '#646cff',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '0.9rem',
-                              transition: 'background-color 0.2s',
-                            }}
-                            onMouseOver={(e) => e.target.style.backgroundColor = '#5558e8'}
-                            onMouseOut={(e) => e.target.style.backgroundColor = '#646cff'}
-                          >
-                            Pay Online Now
-                          </button>
-                          <button
-                            onClick={() => handleCancel(payment.id)}
-                            style={{
-                              padding: '10px 20px',
-                              backgroundColor: '#dc3545',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '0.9rem',
-                              transition: 'background-color 0.2s',
-                            }}
-                            onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-                            onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
+                    <div style={{ display: 'flex', gap: '10px', marginTop: '20px', flexWrap: 'wrap' }}>
+                      {/* Show payment button for cash (switch to online) or online (retry) */}
+                      {(payment.payment_method === 'CASH' || payment.payment_method === 'CASH_WALKIN' || 
+                        payment.payment_method === 'ONLINE_MAYA' || payment.payment_method === 'ONLINE_CARD') && (
                         <button
-                          onClick={() => handleCancel(payment.id)}
+                          onClick={() => handlePayOnline(payment.id)}
                           style={{
                             padding: '10px 20px',
-                            backgroundColor: '#dc3545',
+                            backgroundColor: '#646cff',
                             color: 'white',
                             border: 'none',
                             borderRadius: '6px',
@@ -518,12 +495,51 @@ function Billing() {
                             fontSize: '0.9rem',
                             transition: 'background-color 0.2s',
                           }}
-                          onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
-                          onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+                          onMouseOver={(e) => e.target.style.backgroundColor = '#5558e8'}
+                          onMouseOut={(e) => e.target.style.backgroundColor = '#646cff'}
                         >
-                          Cancel
+                          Pay with Credit/Debit Card
                         </button>
                       )}
+                      {/* Cancel button for all pending payments */}
+                      <button
+                        onClick={() => handleCancel(payment.id)}
+                        style={{
+                          padding: '10px 20px',
+                          backgroundColor: '#dc3545',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '0.9rem',
+                          transition: 'background-color 0.2s',
+                        }}
+                        onMouseOver={(e) => e.target.style.backgroundColor = '#c82333'}
+                        onMouseOut={(e) => e.target.style.backgroundColor = '#dc3545'}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                  {activeTab === 'history' && payment.status === 'PAID' && (
+                    <div style={{ marginTop: '20px' }}>
+                      <button
+                        onClick={() => handleDownloadReceipt(payment.id)}
+                        style={{
+                          padding: '10px 20px',
+                          backgroundColor: '#28a745',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '0.9rem',
+                          transition: 'background-color 0.2s',
+                        }}
+                        onMouseOver={(e) => (e.target.style.backgroundColor = '#218838')}
+                        onMouseOut={(e) => (e.target.style.backgroundColor = '#28a745')}
+                      >
+                        Download Receipt
+                      </button>
                     </div>
                   )}
                 </div>

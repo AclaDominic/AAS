@@ -56,13 +56,20 @@ function PaymentMethodModal({ offer, promo, firstTimeDiscount, onClose, onSucces
 
       const result = await offersService.initiatePayment(data)
       
-      if (result.payment?.payment_code) {
-        alert(`Payment initiated! Your payment code is: ${result.payment.payment_code}\n\nPlease bring this code when you pay in person.`)
-      } else {
-        alert('Payment processed successfully!')
+      // If online payment and checkout URL is provided, redirect to Maya
+      if ((paymentMethod === 'ONLINE_CARD' || paymentMethod === 'ONLINE_MAYA') && result.checkout_url) {
+        window.location.href = result.checkout_url
+        return // Don't call onSuccess yet - wait for callback
       }
       
-      onSuccess()
+      // For cash payments, show the payment code
+      if (paymentMethod === 'CASH' && result.payment?.payment_code) {
+        alert(`Payment initiated! Your payment code is: ${result.payment.payment_code}\n\nPlease bring this code when you pay in person.`)
+        onSuccess()
+      } else {
+        alert('Payment processed successfully!')
+        onSuccess()
+      }
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to initiate payment'
       setError(errorMessage)
@@ -159,32 +166,6 @@ function PaymentMethodModal({ offer, promo, firstTimeDiscount, onClose, onSucces
               display: 'flex', 
               alignItems: 'center', 
               padding: '15px',
-              backgroundColor: paymentMethod === 'ONLINE_MAYA' ? 'rgba(100, 108, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '8px',
-              marginBottom: '10px',
-              cursor: 'pointer',
-              border: paymentMethod === 'ONLINE_MAYA' ? '2px solid #646cff' : '2px solid transparent',
-            }}>
-              <input
-                type="radio"
-                name="payment_method"
-                value="ONLINE_MAYA"
-                checked={paymentMethod === 'ONLINE_MAYA'}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                style={{ marginRight: '10px' }}
-              />
-              <div>
-                <div style={{ color: '#ffffff', fontWeight: 'bold' }}>Maya</div>
-                <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>
-                  Pay online via Maya (Placeholder)
-                </div>
-              </div>
-            </label>
-
-            <label style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              padding: '15px',
               backgroundColor: paymentMethod === 'ONLINE_CARD' ? 'rgba(100, 108, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
               borderRadius: '8px',
               cursor: 'pointer',
@@ -199,9 +180,9 @@ function PaymentMethodModal({ offer, promo, firstTimeDiscount, onClose, onSucces
                 style={{ marginRight: '10px' }}
               />
               <div>
-                <div style={{ color: '#ffffff', fontWeight: 'bold' }}>Credit/Debit Card</div>
+                <div style={{ color: '#ffffff', fontWeight: 'bold' }}>Pay with Credit/Debit Card</div>
                 <div style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem' }}>
-                  Pay online with card
+                  Pay online using your credit or debit card. You'll receive a payment code for reference.
                 </div>
               </div>
             </label>

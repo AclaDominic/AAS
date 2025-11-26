@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\UserPromoUsage;
 use App\Models\UserDiscountUsage;
+use App\Services\InvoiceService;
+use App\Services\PaymentReceiptService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -113,9 +115,15 @@ class PaymentController extends Controller
                 ]);
             }
 
+            // Generate receipt
+            $invoiceService = new InvoiceService();
+            $invoiceService->generateReceipt($payment);
+
             DB::commit();
 
-            $payment->load(['membershipOffer', 'promo', 'firstTimeDiscount', 'subscription']);
+            app(PaymentReceiptService::class)->deliver($payment);
+
+            $payment->load(['membershipOffer', 'promo', 'firstTimeDiscount', 'subscription', 'receipt']);
 
             return response()->json([
                 'message' => 'Payment marked as paid and subscription created successfully.',

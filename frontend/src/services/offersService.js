@@ -124,8 +124,12 @@ export const offersService = {
     return response.data
   },
 
-  async processOnlinePayment(id) {
-    const response = await api.post(`/api/payments/${id}/process-online`)
+  async processOnlinePayment(id, paymentMethodPreference = null) {
+    const data = {}
+    if (paymentMethodPreference) {
+      data.payment_method_preference = paymentMethodPreference
+    }
+    const response = await api.post(`/api/payments/${id}/process-online`, data)
     return response.data
   },
 

@@ -12,9 +12,13 @@ use App\Models\Payment;
 use App\Models\Promo;
 use App\Models\UserPromoUsage;
 use App\Models\UserDiscountUsage;
+use App\Services\InvoiceService;
+use App\Services\MayaPaymentService;
+use App\Services\PaymentReceiptService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -131,11 +135,8 @@ class PaymentController extends Controller
         try {
             DB::beginTransaction();
 
-            // Generate payment code for cash payments
-            $paymentCode = null;
-            if ($request->payment_method === 'CASH') {
-                $paymentCode = Payment::generatePaymentCode();
-            }
+            // Generate payment code for all payment methods
+            $paymentCode = Payment::generatePaymentCode();
 
             // Create payment
             $payment = Payment::create([
@@ -149,21 +150,99 @@ class PaymentController extends Controller
                 'status' => 'PENDING',
             ]);
 
+            // For online payments, immediately create Maya checkout session
+            $checkoutUrl = null;
+            if (in_array($request->payment_method, ['ONLINE_MAYA', 'ONLINE_CARD'])) {
+                $mayaService = new MayaPaymentService();
+                $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:5173'));
+                
+                // Split user name into first and last name
+                $nameParts = explode(' ', $user->name, 2);
+                $firstName = $nameParts[0] ?? $user->name;
+                $lastName = $nameParts[1] ?? '';
+
+                // Map payment method to Maya preference - both go to card payment
+                $paymentMethodPreference = 'CARD';
+
+                // Create Maya checkout session
+                $checkoutData = $mayaService->createCheckout([
+                    'amount' => $finalPrice,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => $user->email,
+                    'phone' => '',
+                    'item_name' => $membershipOffer->name,
+                    'success_url' => $frontendUrl . '/payment/success?payment_id=' . $payment->id,
+                    'failure_url' => $frontendUrl . '/payment/failure?payment_id=' . $payment->id,
+                    'cancel_url' => $frontendUrl . '/payment/cancel?payment_id=' . $payment->id,
+                    'request_reference_number' => 'PAY-' . $payment->id . '-' . time(),
+                    'payment_method_preference' => $paymentMethodPreference,
+                ]);
+
+                if ($checkoutData['success']) {
+                    // Verify we have the required checkout data
+                    if (empty($checkoutData['checkout_id']) || empty($checkoutData['redirect_url'])) {
+                        DB::rollBack();
+                        Log::error('Maya checkout created but missing required data', [
+                            'payment_id' => $payment->id ?? null,
+                            'payment_method' => $request->payment_method,
+                            'checkout_id' => $checkoutData['checkout_id'] ?? null,
+                            'redirect_url' => $checkoutData['redirect_url'] ?? null,
+                        ]);
+                        return response()->json([
+                            'message' => 'Failed to initialize payment: Invalid response from payment gateway.',
+                        ], 500);
+                    }
+
+                    // Store checkout ID
+                    $payment->maya_checkout_id = $checkoutData['checkout_id'];
+                    $payment->save();
+                    $checkoutUrl = $checkoutData['redirect_url'];
+                } else {
+                    DB::rollBack();
+                    Log::error('Maya checkout creation failed in initiatePurchase', [
+                        'payment_id' => $payment->id ?? null,
+                        'payment_method' => $request->payment_method,
+                        'payment_method_preference' => $paymentMethodPreference ?? null,
+                        'error' => $checkoutData['error'] ?? 'Unknown error',
+                        'details' => $checkoutData['details'] ?? null,
+                    ]);
+                    return response()->json([
+                        'message' => 'Failed to initialize payment: ' . ($checkoutData['error'] ?? 'Unknown error'),
+                        'details' => config('app.debug') ? ($checkoutData['details'] ?? null) : null,
+                    ], 400);
+                }
+            }
+
             DB::commit();
 
             $payment->load(['membershipOffer', 'promo', 'firstTimeDiscount']);
 
-            return response()->json([
+            $response = [
                 'message' => $request->payment_method === 'CASH' 
                     ? 'Payment initiated. Please bring the payment code to complete your payment.'
-                    : 'Payment initiated. Please complete the payment process.',
+                    : 'Payment initiated. Redirecting to payment gateway...',
                 'payment' => $payment,
-            ], 201);
+            ];
+
+            // Include checkout URL for online payments
+            if ($checkoutUrl) {
+                $response['checkout_url'] = $checkoutUrl;
+            }
+
+            return response()->json($response, 201);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Payment initiation failed', [
+                'user_id' => $user->id,
+                'offer_id' => $request->membership_offer_id,
+                'payment_method' => $request->payment_method ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return response()->json([
                 'message' => 'Failed to initiate payment. Please try again.',
-                'error' => $e->getMessage(),
+                'error' => config('app.debug') ? $e->getMessage() : 'An error occurred while processing your payment.',
             ], 500);
         }
     }
@@ -205,8 +284,19 @@ class PaymentController extends Controller
         $user = $request->user();
         $payment = Payment::where('user_id', $user->id)
             ->where('id', $id)
-            ->where('status', 'PENDING')
-            ->firstOrFail();
+            ->first();
+
+        if (!$payment) {
+            return response()->json([
+                'message' => 'Payment not found or you do not have permission to access it.',
+            ], 404);
+        }
+
+        if ($payment->status !== 'PENDING') {
+            return response()->json([
+                'message' => "Cannot cancel payment. Payment status is {$payment->status}.",
+            ], 400);
+        }
 
         $payment->status = 'CANCELLED';
         $payment->payment_code = null; // Clear payment code when cancelled
@@ -218,40 +308,191 @@ class PaymentController extends Controller
     }
 
     /**
-     * Process online payment (placeholder for Maya integration).
+     * Process online payment via Maya checkout.
      */
     public function processOnlinePayment(Request $request, $id): JsonResponse
     {
         $user = $request->user();
         $payment = Payment::where('user_id', $user->id)
             ->where('id', $id)
-            ->where('status', 'PENDING')
-            ->whereIn('payment_method', ['ONLINE_MAYA', 'ONLINE_CARD'])
-            ->firstOrFail();
+            ->with(['membershipOffer', 'promo', 'firstTimeDiscount'])
+            ->first();
 
+        if (!$payment) {
+            return response()->json([
+                'message' => 'Payment not found or you do not have permission to access it.',
+            ], 404);
+        }
+
+        if ($payment->status !== 'PENDING') {
+            return response()->json([
+                'message' => "This payment is already {$payment->status}. Cannot process online payment.",
+            ], 400);
+        }
+
+        // Allow any pending payment to be processed online (supports change of mind from walk-in to online)
         try {
             DB::beginTransaction();
 
-            // TODO: Integrate with Maya payment gateway
-            // For now, simulate successful payment
-            $payment->status = 'PAID';
-            $payment->payment_date = now();
-            $payment->payment_code = null; // Clear payment code when marked as paid
-            $payment->save();
+            $mayaService = new MayaPaymentService();
+            $frontendUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:5173'));
+            
+            // Split user name into first and last name
+            $nameParts = explode(' ', $user->name, 2);
+            $firstName = $nameParts[0] ?? $user->name;
+            $lastName = $nameParts[1] ?? '';
 
-            $membershipOffer = $payment->membershipOffer;
-            $this->createSubscription($payment, $user, $membershipOffer, $payment->promo, $payment->firstTimeDiscount, $payment->amount);
+            // Always use CARD payment method (Maya Wallet option removed)
+            $paymentMethodPreference = 'CARD';
+
+            // Create Maya checkout session
+            $checkoutData = $mayaService->createCheckout([
+                'amount' => $payment->amount,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $user->email,
+                'phone' => '',
+                'item_name' => $payment->membershipOffer?->name ?? 'Membership Payment',
+                'success_url' => $frontendUrl . '/payment/success?payment_id=' . $payment->id,
+                'failure_url' => $frontendUrl . '/payment/failure?payment_id=' . $payment->id,
+                'cancel_url' => $frontendUrl . '/payment/cancel?payment_id=' . $payment->id,
+                'request_reference_number' => 'PAY-' . $payment->id . '-' . time(),
+                'payment_method_preference' => $paymentMethodPreference,
+            ]);
+
+            if (!$checkoutData['success']) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Failed to initialize payment: ' . ($checkoutData['error'] ?? 'Unknown error'),
+                ], 400);
+            }
+
+            // Store checkout ID
+            $payment->maya_checkout_id = $checkoutData['checkout_id'];
+            $payment->save();
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Payment processed successfully.',
+                'message' => 'Payment checkout created. Please complete payment.',
+                'checkout_url' => $checkoutData['redirect_url'],
                 'payment' => $payment->load(['membershipOffer', 'promo', 'firstTimeDiscount']),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Payment processing failed', [
+                'payment_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
             return response()->json([
                 'message' => 'Payment processing failed. Please try again.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Handle Maya payment callback/webhook.
+     */
+    public function handleMayaCallback(Request $request): JsonResponse
+    {
+        $request->validate([
+            'checkoutId' => 'required|string',
+            'paymentId' => 'nullable|string',
+        ]);
+
+        $mayaService = new MayaPaymentService();
+        $verification = $mayaService->verifyPayment($request->checkoutId);
+
+        if (!$verification['success']) {
+            return response()->json([
+                'message' => 'Payment verification failed',
+            ], 400);
+        }
+
+        $payment = Payment::where('maya_checkout_id', $request->checkoutId)->first();
+
+        if (!$payment) {
+            Log::warning('Maya callback: Payment not found', [
+                'checkout_id' => $request->checkoutId,
+            ]);
+            return response()->json([
+                'message' => 'Payment not found for this checkout ID.',
+            ], 404);
+        }
+
+        // If payment is already processed, return success
+        if ($payment->status === 'PAID') {
+            Log::info('Maya callback: Payment already processed', [
+                'payment_id' => $payment->id,
+                'checkout_id' => $request->checkoutId,
+            ]);
+            return response()->json([
+                'message' => 'Payment already processed.',
+                'payment' => $payment->load(['membershipOffer', 'promo', 'firstTimeDiscount', 'receipt']),
+            ]);
+        }
+
+        // Only process if payment is still pending
+        if ($payment->status !== 'PENDING') {
+            Log::warning('Maya callback: Payment not in PENDING status', [
+                'payment_id' => $payment->id,
+                'checkout_id' => $request->checkoutId,
+                'current_status' => $payment->status,
+            ]);
+            return response()->json([
+                'message' => 'Payment is not in a processable state.',
+                'current_status' => $payment->status,
+            ], 400);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            if ($verification['status'] === 'PAYMENT_SUCCESS') {
+                $payment->status = 'PAID';
+                $payment->payment_date = now();
+                $payment->maya_payment_id = $verification['payment_id'];
+                $payment->maya_payment_token = $verification['payment_token'] ?? null;
+                $payment->maya_metadata = $verification['data'];
+                $payment->save();
+
+                // Create subscription
+                $membershipOffer = $payment->membershipOffer;
+                $this->createSubscription($payment, $payment->user, $membershipOffer, $payment->promo, $payment->firstTimeDiscount, $payment->amount);
+
+                // Generate receipt
+                $invoiceService = new InvoiceService();
+                $invoiceService->generateReceipt($payment);
+
+                DB::commit();
+
+                app(PaymentReceiptService::class)->deliver($payment);
+
+                return response()->json([
+                    'message' => 'Payment processed successfully.',
+                    'payment' => $payment->load(['membershipOffer', 'promo', 'firstTimeDiscount', 'receipt']),
+                ]);
+            } else {
+                $payment->status = 'FAILED';
+                $payment->maya_metadata = $verification['data'];
+                $payment->save();
+
+                DB::commit();
+
+                return response()->json([
+                    'message' => 'Payment failed.',
+                    'payment' => $payment,
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Maya callback processing failed', [
+                'checkout_id' => $request->checkoutId,
+                'error' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'message' => 'Payment processing failed.',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -305,6 +546,12 @@ class PaymentController extends Controller
                 'first_time_discount_id' => $firstTimeDiscount->id,
                 'used_at' => now(),
             ]);
+        }
+
+        // Generate receipt if payment is PAID
+        if ($payment->status === 'PAID') {
+            $invoiceService = new InvoiceService();
+            $invoiceService->generateReceipt($payment);
         }
 
         return $subscription;
@@ -382,6 +629,11 @@ class PaymentController extends Controller
             }
 
             DB::commit();
+
+            $receiptService = app(PaymentReceiptService::class);
+            foreach ($payments as $payment) {
+                $receiptService->deliver($payment);
+            }
 
             return response()->json([
                 'message' => 'Bulk payment processed successfully!',

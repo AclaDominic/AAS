@@ -24,6 +24,9 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     ];
 });
 
+// Maya payment callback (no auth required - called by Maya)
+Route::post('/payments/maya/callback', [PaymentController::class, 'handleMayaCallback']);
+
 // Admin routes (protected by admin middleware)
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     // Membership Offers

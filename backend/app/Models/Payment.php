@@ -19,11 +19,16 @@ class Payment extends Model
         'amount',
         'status',
         'payment_date',
+        'maya_checkout_id',
+        'maya_payment_id',
+        'maya_payment_token',
+        'maya_metadata',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'payment_date' => 'datetime',
+        'maya_metadata' => 'array',
     ];
 
     public function user(): BelongsTo

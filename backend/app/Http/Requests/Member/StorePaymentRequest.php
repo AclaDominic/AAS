@@ -25,7 +25,7 @@ class StorePaymentRequest extends FormRequest
             'membership_offer_id' => ['required', 'exists:membership_offers,id'],
             'promo_id' => ['nullable', 'exists:promos,id'],
             'first_time_discount_id' => ['nullable', 'exists:first_time_discounts,id'],
-            'payment_method' => ['required', 'in:CASH,ONLINE_MAYA,ONLINE_CARD'],
+            'payment_method' => ['required', 'in:CASH,ONLINE_CARD,ONLINE_MAYA'],
         ];
     }
 }

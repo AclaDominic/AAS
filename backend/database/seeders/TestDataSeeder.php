@@ -107,6 +107,13 @@ class TestDataSeeder extends Seeder
             'amount' => 299.99,
             'status' => 'PAID',
             'payment_date' => now()->subYear(),
+            'maya_checkout_id' => 'TEST-CHECKOUT-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'maya_payment_id' => 'TEST-PAYMENT-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'maya_metadata' => [
+                'payment_method' => 'maya_wallet',
+                'payment_status' => 'PAYMENT_SUCCESS',
+                'transaction_date' => now()->subYear()->toIso8601String(),
+            ],
         ]);
 
         $subscription2 = MembershipSubscription::create([
@@ -192,6 +199,15 @@ class TestDataSeeder extends Seeder
             'amount' => 299.99,
             'status' => 'PAID',
             'payment_date' => now()->subYear(),
+            'maya_checkout_id' => 'TEST-CHECKOUT-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'maya_payment_id' => 'TEST-PAYMENT-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'maya_metadata' => [
+                'payment_method' => 'card',
+                'card_type' => 'visa',
+                'last_4' => '2346',
+                'payment_status' => 'PAYMENT_SUCCESS',
+                'transaction_date' => now()->subYear()->toIso8601String(),
+            ],
         ]);
 
         $subscription3b = MembershipSubscription::create([
@@ -423,6 +439,13 @@ class TestDataSeeder extends Seeder
             'amount' => $annualBadminton->price,
             'status' => 'PAID',
             'payment_date' => now()->subDays(5),
+            'maya_checkout_id' => 'TEST-CHECKOUT-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'maya_payment_id' => 'TEST-PAYMENT-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'maya_metadata' => [
+                'payment_method' => 'maya_wallet',
+                'payment_status' => 'PAYMENT_SUCCESS',
+                'transaction_date' => now()->subDays(5)->toIso8601String(),
+            ],
         ]);
 
         $subscriptionBilling2 = MembershipSubscription::create([
@@ -461,6 +484,97 @@ class TestDataSeeder extends Seeder
             'invoice_date' => $billingStatementTest2->statement_date,
             'amount' => $billingStatementTest2->amount,
             'status' => 'PAID',
+        ]);
+
+        // Member 8: PENDING Maya payment (checkout created but not completed)
+        $member8 = User::create([
+            'name' => 'Maya Test Pending',
+            'email' => 'maya.pending@example.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+        ]);
+        Member::create(['user_id' => $member8->id]);
+        $members[] = $member8;
+
+        Payment::create([
+            'user_id' => $member8->id,
+            'membership_offer_id' => $monthlyGym->id,
+            'payment_method' => 'ONLINE_MAYA',
+            'amount' => 49.99,
+            'status' => 'PENDING',
+            'maya_checkout_id' => 'TEST-CHECKOUT-PENDING-' . strtoupper(\Illuminate\Support\Str::random(6)),
+        ]);
+
+        // Member 9: FAILED Maya payment
+        $member9 = User::create([
+            'name' => 'Maya Test Failed',
+            'email' => 'maya.failed@example.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+        ]);
+        Member::create(['user_id' => $member9->id]);
+        $members[] = $member9;
+
+        Payment::create([
+            'user_id' => $member9->id,
+            'membership_offer_id' => $monthlyGym->id,
+            'payment_method' => 'ONLINE_MAYA',
+            'amount' => 49.99,
+            'status' => 'FAILED',
+            'maya_checkout_id' => 'TEST-CHECKOUT-FAILED-' . strtoupper(\Illuminate\Support\Str::random(6)),
+            'maya_metadata' => [
+                'payment_method' => 'card',
+                'card_type' => 'visa',
+                'last_4' => '2347',
+                'payment_status' => 'PAYMENT_FAILED',
+                'error_message' => 'Card declined',
+            ],
+        ]);
+
+        // Member 10: Successful card payment through Maya
+        $member10 = User::create([
+            'name' => 'Card Test Success',
+            'email' => 'card.success@example.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+        ]);
+        Member::create(['user_id' => $member10->id]);
+        $members[] = $member10;
+
+        $payment10 = Payment::create([
+            'user_id' => $member10->id,
+            'membership_offer_id' => $monthlyGym->id,
+            'payment_method' => 'ONLINE_CARD',
+            'amount' => 49.99,
+            'status' => 'PAID',
+            'payment_date' => now()->subDays(2),
+            'maya_checkout_id' => 'TEST-CHECKOUT-CARD-' . strtoupper(\Illuminate\Support\Str::random(6)),
+            'maya_payment_id' => 'TEST-PAYMENT-CARD-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'maya_metadata' => [
+                'payment_method' => 'card',
+                'card_type' => 'mastercard',
+                'last_4' => '4154',
+                'payment_status' => 'PAYMENT_SUCCESS',
+                'transaction_date' => now()->subDays(2)->toIso8601String(),
+            ],
+        ]);
+
+        MembershipSubscription::create([
+            'user_id' => $member10->id,
+            'payment_id' => $payment10->id,
+            'membership_offer_id' => $monthlyGym->id,
+            'price_paid' => 49.99,
+            'start_date' => now()->subDays(2),
+            'end_date' => now()->addDays(28),
+            'status' => 'ACTIVE',
+            'is_recurring' => true,
+        ]);
+
+        Receipt::create([
+            'payment_id' => $payment10->id,
+            'receipt_number' => Receipt::generateReceiptNumber(),
+            'receipt_date' => $payment10->payment_date,
+            'amount' => $payment10->amount,
         ]);
 
         $this->command->info('Test data seeded successfully!');
