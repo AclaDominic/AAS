@@ -43,6 +43,8 @@ class DatabaseSeeder extends Seeder
             MembershipOfferSeeder::class,
             PromoSeeder::class,
             FirstTimeDiscountSeeder::class,
+            FacilityScheduleSeeder::class,
+            FacilitySettingSeeder::class,
         ]);
 
         // Seed test data for new features (billing, subscriptions, payments, etc.)

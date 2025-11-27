@@ -9,6 +9,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+// Forward declaration - models are auto-loaded by Laravel
+
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -86,6 +88,14 @@ class User extends Authenticatable implements MustVerifyEmail
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Get the court reservations for the user.
+     */
+    public function courtReservations()
+    {
+        return $this->hasMany(CourtReservation::class);
     }
 
     /**

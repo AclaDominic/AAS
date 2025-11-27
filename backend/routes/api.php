@@ -1,12 +1,17 @@
 <?php
 
 use App\Http\Controllers\Admin\BillingController as AdminBillingController;
+use App\Http\Controllers\Admin\CourtReservationController as AdminCourtReservationController;
+use App\Http\Controllers\Admin\FacilityScheduleController;
+use App\Http\Controllers\Admin\FacilitySettingController;
 use App\Http\Controllers\Admin\FirstTimeDiscountController;
 use App\Http\Controllers\Admin\MemberController;
 use App\Http\Controllers\Admin\MembershipOfferController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\PromoController;
 use App\Http\Controllers\Member\BillingController as MemberBillingController;
+use App\Http\Controllers\Member\CourtReservationController;
+use App\Http\Controllers\Member\FacilitySettingController as MemberFacilitySettingController;
 use App\Http\Controllers\Member\MembershipController;
 use App\Http\Controllers\Member\PaymentController;
 use App\Http\Controllers\OfferController;
@@ -59,6 +64,25 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/reports/customer-balances', [\App\Http\Controllers\Admin\ReportsController::class, 'customerBalances']);
     Route::get('/reports/payments-summary', [\App\Http\Controllers\Admin\ReportsController::class, 'paymentsSummary']);
     Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportsController::class, 'export']);
+    
+    // Facility Schedule
+    Route::get('/facility/schedule', [FacilityScheduleController::class, 'index']);
+    Route::put('/facility/schedule', [FacilityScheduleController::class, 'update']);
+    Route::put('/facility/schedule/{day}', [FacilityScheduleController::class, 'updateDay']);
+    
+    // Facility Settings
+    Route::get('/facility/settings', [FacilitySettingController::class, 'show']);
+    Route::put('/facility/settings', [FacilitySettingController::class, 'update']);
+    
+    // Court Reservations
+    Route::apiResource('reservations', AdminCourtReservationController::class)
+        ->only(['index', 'show'])
+        ->names([
+            'index' => 'admin.reservations.index',
+            'show' => 'admin.reservations.show',
+        ]);
+    Route::post('/reservations/{id}/cancel', [AdminCourtReservationController::class, 'cancel'])
+        ->name('admin.reservations.cancel');
 });
 
 // Public/Member routes
@@ -93,4 +117,24 @@ Route::middleware(['auth:sanctum'])->group(function () {
     
     // Bulk Payment
     Route::post('/payments/bulk-pay', [PaymentController::class, 'bulkPay']);
+    
+    // Facility Settings (read-only for members)
+    Route::get('/facility/settings', [MemberFacilitySettingController::class, 'show']);
+    
+    // Court Reservations
+    Route::get('/courts/available-slots', [CourtReservationController::class, 'availableSlots'])
+        ->name('courts.available-slots');
+    Route::get('/courts/reservation-options', [CourtReservationController::class, 'getReservationOptions'])
+        ->name('courts.reservation-options');
+    Route::get('/courts/check-availability', [CourtReservationController::class, 'checkAvailability'])
+        ->name('courts.check-availability');
+    Route::apiResource('reservations', CourtReservationController::class)
+        ->only(['index', 'store', 'show'])
+        ->names([
+            'index' => 'reservations.index',
+            'store' => 'reservations.store',
+            'show' => 'reservations.show',
+        ]);
+    Route::post('/reservations/{id}/cancel', [CourtReservationController::class, 'cancel'])
+        ->name('reservations.cancel');
 });

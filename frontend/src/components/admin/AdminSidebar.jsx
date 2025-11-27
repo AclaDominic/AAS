@@ -39,6 +39,21 @@ function AdminSidebar() {
       label: 'Reports',
       icon: '📊',
     },
+    {
+      path: '/admin/facility-schedule',
+      label: 'Facility Schedule',
+      icon: '📅',
+    },
+    {
+      path: '/admin/facility-settings',
+      label: 'Facility Settings',
+      icon: '⚙️',
+    },
+    {
+      path: '/admin/reservations',
+      label: 'Court Reservations',
+      icon: '🏸',
+    },
     // Add more navigation items here as needed
     // {
     //   path: '/admin/settings',

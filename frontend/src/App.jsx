@@ -9,6 +9,11 @@ import OffersManagement from './pages/admin/OffersManagement'
 import Payments from './pages/admin/Payments'
 import MembersManagement from './pages/admin/MembersManagement'
 import Reports from './pages/admin/Reports'
+import FacilitySchedule from './pages/admin/FacilitySchedule'
+import FacilitySettings from './pages/admin/FacilitySettings'
+import CourtReservations from './pages/admin/CourtReservations'
+import CourtBooking from './pages/member/CourtBooking'
+import MyReservations from './pages/member/MyReservations'
 import './App.css'
 
 function ProtectedRoute({ children }) {
@@ -84,6 +89,46 @@ function App() {
           element={
             <ProtectedRoute>
               <Reports />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/facility-schedule"
+          element={
+            <ProtectedRoute>
+              <FacilitySchedule />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/facility-settings"
+          element={
+            <ProtectedRoute>
+              <FacilitySettings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reservations"
+          element={
+            <ProtectedRoute>
+              <CourtReservations />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courts/booking"
+          element={
+            <ProtectedRoute>
+              <CourtBooking />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/courts/reservations"
+          element={
+            <ProtectedRoute>
+              <MyReservations />
             </ProtectedRoute>
           }
         />
