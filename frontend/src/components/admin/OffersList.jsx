@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { offersService } from '../../services/offersService'
 import OfferForm from './OfferForm'
+import '../../pages/admin/AdminPages.css'
 
 function OffersList() {
   const [offers, setOffers] = useState([])
@@ -60,14 +61,19 @@ function OffersList() {
   }
 
   if (loading) {
-    return <div>Loading offers...</div>
+    return (
+      <div className="admin-loading">
+        <div className="admin-spinner"></div>
+        <p>Loading offers...</p>
+      </div>
+    )
   }
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>Membership Offers</h2>
-        <button onClick={handleCreate} style={{ padding: '10px 20px', backgroundColor: '#646cff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+        <h2 className="admin-card-title" style={{ margin: 0, fontSize: '1.8rem', color: 'rgba(255, 255, 255, 0.9)' }}>Membership Offers</h2>
+        <button onClick={handleCreate} className="admin-button admin-button-primary">
           Create Offer
         </button>
       </div>
@@ -80,64 +86,63 @@ function OffersList() {
         />
       )}
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', borderRadius: '8px', overflow: 'hidden' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f5f5f5' }}>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Name</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Category</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Price</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Billing Type</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Duration</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Status</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {offers.length === 0 ? (
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
             <tr>
-              <td colSpan="7" style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                No offers found. Create your first offer!
-              </td>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Billing Type</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ) : (
-            offers.map((offer) => (
-              <tr key={offer.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '12px' }}>{offer.name}</td>
-                <td style={{ padding: '12px' }}>{offer.category.replace('_', ' ')}</td>
-                <td style={{ padding: '12px' }}>${parseFloat(offer.price).toFixed(2)}</td>
-                <td style={{ padding: '12px' }}>{offer.billing_type.replace('_', ' ')}</td>
-                <td style={{ padding: '12px' }}>
-                  {offer.duration_value} {offer.duration_type.toLowerCase()}{offer.duration_value > 1 ? 's' : ''}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{ 
-                    padding: '4px 8px', 
-                    borderRadius: '4px', 
-                    backgroundColor: offer.is_active ? '#d4edda' : '#f8d7da',
-                    color: offer.is_active ? '#155724' : '#721c24'
-                  }}>
-                    {offer.is_active ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <button 
-                    onClick={() => handleEdit(offer)}
-                    style={{ marginRight: '8px', padding: '6px 12px', backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(offer.id)}
-                    style={{ padding: '6px 12px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    Delete
-                  </button>
+          </thead>
+          <tbody>
+            {offers.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="admin-empty">
+                  No offers found. Create your first offer!
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              offers.map((offer) => (
+                <tr key={offer.id}>
+                  <td>{offer.name}</td>
+                  <td>{offer.category.replace('_', ' ')}</td>
+                  <td>₱{parseFloat(offer.price).toFixed(2)}</td>
+                  <td>{offer.billing_type.replace('_', ' ')}</td>
+                  <td>
+                    {offer.duration_value} {offer.duration_type.toLowerCase()}{offer.duration_value > 1 ? 's' : ''}
+                  </td>
+                  <td>
+                    <span className={`admin-badge ${offer.is_active ? 'admin-badge-success' : 'admin-badge-danger'}`}>
+                      {offer.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td>
+                    <button 
+                      onClick={() => handleEdit(offer)}
+                      className="admin-button admin-button-secondary"
+                      style={{ marginRight: '8px', padding: '6px 12px', fontSize: '0.85rem' }}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(offer.id)}
+                      className="admin-button admin-button-danger"
+                      style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../../pages/admin/AdminPages.css'
 
 function MembersList({ members, onMemberClick, loading }) {
   const formatPrice = (price) => {
@@ -19,22 +20,23 @@ function MembersList({ members, onMemberClick, loading }) {
     })
   }
 
-  const getStatusColor = (status) => {
+  const getStatusBadge = (status) => {
     switch (status) {
       case 'active':
-        return '#28a745'
+        return 'admin-badge-success'
       case 'expired':
-        return '#ffc107'
+        return 'admin-badge-warning'
       case 'inactive':
-        return '#6c757d'
+        return 'admin-badge-danger'
       default:
-        return '#6c757d'
+        return 'admin-badge-info'
     }
   }
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
+      <div className="admin-loading">
+        <div className="admin-spinner"></div>
         <p>Loading members...</p>
       </div>
     )
@@ -42,69 +44,47 @@ function MembersList({ members, onMemberClick, loading }) {
 
   if (members.length === 0) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+      <div className="admin-empty">
         <p>No members found.</p>
       </div>
     )
   }
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
-            <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Name</th>
-            <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Email</th>
-            <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Status</th>
-            <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Active Subscriptions</th>
-            <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Total Spent</th>
-            <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Last Payment</th>
-            <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold' }}>Registered</th>
+    <table className="admin-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Status</th>
+          <th>Active Subscriptions</th>
+          <th>Total Spent</th>
+          <th>Last Payment</th>
+          <th>Registered</th>
+        </tr>
+      </thead>
+      <tbody>
+        {members.map((member) => (
+          <tr
+            key={member.id}
+            onClick={() => onMemberClick(member)}
+            style={{ cursor: 'pointer' }}
+          >
+            <td>{member.name}</td>
+            <td>{member.email}</td>
+            <td>
+              <span className={`admin-badge ${getStatusBadge(member.membership_status)}`}>
+                {member.membership_status}
+              </span>
+            </td>
+            <td>{member.active_subscriptions_count}</td>
+              <td>{formatPrice(member.total_spent)}</td>
+            <td>{formatDate(member.last_payment_date)}</td>
+            <td>{formatDate(member.created_at)}</td>
           </tr>
-        </thead>
-        <tbody>
-          {members.map((member) => (
-            <tr
-              key={member.id}
-              onClick={() => onMemberClick(member)}
-              style={{
-                borderBottom: '1px solid #dee2e6',
-                cursor: 'pointer',
-                transition: 'background-color 0.2s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#f8f9fa'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'white'
-              }}
-            >
-              <td style={{ padding: '12px' }}>{member.name}</td>
-              <td style={{ padding: '12px' }}>{member.email}</td>
-              <td style={{ padding: '12px' }}>
-                <span
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: '4px',
-                    backgroundColor: getStatusColor(member.membership_status) + '20',
-                    color: getStatusColor(member.membership_status),
-                    fontWeight: 'bold',
-                    fontSize: '0.85rem',
-                    textTransform: 'capitalize',
-                  }}
-                >
-                  {member.membership_status}
-                </span>
-              </td>
-              <td style={{ padding: '12px' }}>{member.active_subscriptions_count}</td>
-              <td style={{ padding: '12px' }}>{formatPrice(member.total_spent)}</td>
-              <td style={{ padding: '12px' }}>{formatDate(member.last_payment_date)}</td>
-              <td style={{ padding: '12px' }}>{formatDate(member.created_at)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        ))}
+      </tbody>
+    </table>
   )
 }
 

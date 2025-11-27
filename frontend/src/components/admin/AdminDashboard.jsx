@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { membersService } from '../../services/membersService'
+import '../../pages/admin/AdminPages.css'
 
 function AdminDashboard() {
   const { user } = useAuth()
@@ -20,50 +21,43 @@ function AdminDashboard() {
   }
 
   return (
-    <div style={{ padding: '40px' }}>
-      <h1 style={{ marginBottom: '30px', fontSize: '2.5rem' }}>Admin Dashboard</h1>
+    <div className="admin-page-container">
+      <h1 className="admin-page-title">Admin Dashboard</h1>
       
-      <div style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', marginBottom: '20px' }}>
-        <h2>Welcome, {user?.name}!</h2>
-        <p><strong>Email:</strong> {user?.email}</p>
-        <p><strong>Role:</strong> Admin</p>
+      <div className="admin-card">
+        <h2 className="admin-card-title">Welcome, {user?.name}!</h2>
+        <p className="admin-card-text"><strong>Email:</strong> {user?.email}</p>
+        <p className="admin-card-text"><strong>Role:</strong> Admin</p>
       </div>
 
       {/* Member Statistics Cards */}
       {stats && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '20px',
-            marginBottom: '20px',
-          }}
-        >
-          <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>Total Members</div>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#646cff' }}>{stats.total_members}</div>
+        <div className="admin-stats-grid">
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">Total Members</div>
+            <div className="admin-stat-value admin-stat-value-primary">{stats.total_members}</div>
           </div>
-          <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>Active</div>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#28a745' }}>{stats.active_members}</div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">Active</div>
+            <div className="admin-stat-value admin-stat-value-success">{stats.active_members}</div>
           </div>
-          <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>Expired</div>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffc107' }}>{stats.expired_members}</div>
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">Expired</div>
+            <div className="admin-stat-value admin-stat-value-warning">{stats.expired_members}</div>
           </div>
-          <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>Total Revenue</div>
-            <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#646cff' }}>
+          <div className="admin-stat-card">
+            <div className="admin-stat-label">Total Revenue</div>
+            <div className="admin-stat-value admin-stat-value-primary">
               ₱{new Intl.NumberFormat('en-PH').format(stats.total_revenue)}
             </div>
           </div>
         </div>
       )}
       
-      <div style={{ marginTop: '20px', padding: '15px', backgroundColor: '#f0f0f0', borderRadius: '5px' }}>
-        <h3>Admin Panel</h3>
-        <p>You have admin privileges. This is your dedicated admin dashboard.</p>
-        <p style={{ marginTop: '10px', color: '#666' }}>
+      <div className="admin-card">
+        <h3 className="admin-card-title">Admin Panel</h3>
+        <p className="admin-card-text">You have admin privileges. This is your dedicated admin dashboard.</p>
+        <p className="admin-card-text" style={{ marginTop: '10px', color: 'rgba(255, 255, 255, 0.6)' }}>
           Use the sidebar to navigate to different management sections.
         </p>
       </div>

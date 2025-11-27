@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import MemberLayout from '../../components/layout/MemberLayout'
 import api from '../../services/api'
+import './MemberPages.css'
 
 function CourtBooking() {
   const [selectedDate, setSelectedDate] = useState('')
@@ -15,7 +16,6 @@ function CourtBooking() {
 
   useEffect(() => {
     fetchSettings()
-    // Set default date to tomorrow
     const tomorrow = new Date()
     tomorrow.setDate(tomorrow.getDate() + 1)
     setSelectedDate(tomorrow.toISOString().split('T')[0])
@@ -42,7 +42,6 @@ function CourtBooking() {
       setSettings(response.data)
     } catch (error) {
       console.error('Error fetching settings:', error)
-      // Fallback to defaults
       setSettings({
         advance_booking_days: 30,
         minimum_reservation_duration_minutes: 30,
@@ -135,84 +134,48 @@ function CourtBooking() {
 
   return (
     <MemberLayout>
-      <div style={{ padding: '40px' }}>
-        <h1 style={{ marginBottom: '30px', fontSize: '2.5rem' }}>Book Badminton Court</h1>
+      <div className="court-booking-container">
+        <h1 className="court-booking-title">Book Badminton Court</h1>
 
         {message && (
-          <div
-            style={{
-              padding: '12px 16px',
-              marginBottom: '20px',
-              borderRadius: '4px',
-              backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da',
-              color: message.type === 'success' ? '#155724' : '#721c24',
-              border: `1px solid ${message.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
-            }}
-          >
+          <div className={`court-booking-message ${message.type}`}>
             {message.text}
           </div>
         )}
 
         {/* Date Selector */}
-        <div style={{ marginBottom: '30px' }}>
-          <label
-            style={{
-              display: 'block',
-              marginBottom: '8px',
-              fontWeight: 'bold',
-              fontSize: '1.1rem',
-            }}
-          >
-            Select Date
-          </label>
+        <div className="court-booking-field">
+          <label className="court-booking-label">Select Date</label>
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
             min={new Date().toISOString().split('T')[0]}
             max={getMaxDate()}
-            style={{
-              padding: '10px 12px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '1rem',
-            }}
+            className="court-booking-input"
           />
         </div>
 
         {/* Time Slots Grid */}
         {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center' }}>Loading available slots...</div>
+          <div style={{ padding: '40px', textAlign: 'center', color: '#ffffff' }}>Loading available slots...</div>
         ) : slots.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+          <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)' }}>
             No available slots for this date. The facility may be closed.
           </div>
         ) : (
           <>
             <div style={{ marginBottom: '30px' }}>
-              <h2 style={{ marginBottom: '20px', fontSize: '1.5rem' }}>Available Time Slots</h2>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                  gap: '12px',
-                }}
-              >
+              <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#ffffff' }}>Available Time Slots</h2>
+              <div className="court-booking-slots-grid">
                 {slots.map((slot) => (
                   <button
                     key={slot.time_string}
                     onClick={() => setSelectedSlot(slot.is_available ? slot.time_string : null)}
                     disabled={!slot.is_available}
+                    className={`court-booking-slot ${selectedSlot === slot.time_string ? 'selected' : ''}`}
                     style={{
-                      padding: '16px',
-                      backgroundColor: selectedSlot === slot.time_string ? '#646cff' : slot.is_available ? '#f8f9fa' : '#e9ecef',
-                      color: selectedSlot === slot.time_string ? 'white' : slot.is_available ? '#333' : '#999',
-                      border: `2px solid ${selectedSlot === slot.time_string ? '#646cff' : slot.is_available ? '#ddd' : '#ccc'}`,
-                      borderRadius: '8px',
-                      cursor: slot.is_available ? 'pointer' : 'not-allowed',
-                      fontSize: '1rem',
-                      fontWeight: selectedSlot === slot.time_string ? 'bold' : 'normal',
-                      transition: 'all 0.2s',
+                      color: selectedSlot === slot.time_string ? 'white' : slot.is_available ? '#ffffff' : 'rgba(255, 255, 255, 0.4)',
                     }}
                   >
                     <div>{slot.time_string}</div>
@@ -228,18 +191,12 @@ function CourtBooking() {
 
             {/* Duration Selection */}
             {selectedSlot && durationOptions.length > 0 && (
-              <div style={{ marginBottom: '30px' }}>
-                <h2 style={{ marginBottom: '20px', fontSize: '1.5rem' }}>Select Duration</h2>
+              <div className="court-booking-field">
+                <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#ffffff' }}>Select Duration</h2>
                 <select
                   value={selectedDuration || ''}
                   onChange={(e) => setSelectedDuration(parseInt(e.target.value))}
-                  style={{
-                    padding: '12px 16px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px',
-                    fontSize: '1rem',
-                    minWidth: '200px',
-                  }}
+                  className="court-booking-select"
                 >
                   {durationOptions.map((option) => (
                     <option key={option.duration_minutes} value={option.duration_minutes}>
@@ -255,16 +212,7 @@ function CourtBooking() {
               <button
                 onClick={handleBooking}
                 disabled={booking}
-                style={{
-                  padding: '14px 28px',
-                  backgroundColor: booking ? '#ccc' : '#646cff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  fontSize: '1.1rem',
-                  cursor: booking ? 'not-allowed' : 'pointer',
-                  fontWeight: 'bold',
-                }}
+                className="court-booking-button"
               >
                 {booking ? 'Booking...' : `Book Court for ${formatDuration(selectedDuration)}`}
               </button>
@@ -277,4 +225,3 @@ function CourtBooking() {
 }
 
 export default CourtBooking
-

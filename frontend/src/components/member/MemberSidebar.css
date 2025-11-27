@@ -1,0 +1,165 @@
+.member-sidebar {
+  width: 280px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.member-sidebar.closed {
+  transform: translateX(-100%);
+}
+
+.member-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 30px 20px;
+}
+
+/* User Profile */
+.member-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 30px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 30px;
+}
+
+.member-profile-picture {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  background: rgba(59, 130, 246, 0.1);
+  overflow: hidden;
+}
+
+.member-profile-initial {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.member-profile-info {
+  text-align: center;
+}
+
+.member-profile-name {
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.member-profile-username {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+}
+
+/* Navigation */
+.member-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.member-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  border-radius: 12px;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.member-nav-item:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #ffffff;
+}
+
+.member-nav-item.active {
+  background: #3b82f6;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.member-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.member-nav-label {
+  flex: 1;
+}
+
+/* Log Out */
+.member-logout {
+  margin-top: auto;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: left;
+  cursor: pointer;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.member-logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Scrollbar */
+.member-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.member-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.member-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+}
+
+.member-sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .member-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+  }
+
+  .member-sidebar.closed {
+    transform: translateX(-100%);
+  }
+}
+

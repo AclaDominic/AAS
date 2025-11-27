@@ -29,25 +29,34 @@ function Dashboard() {
   // Regular dashboard for members
   return (
     <MemberLayout>
-      <div style={{ padding: '40px', minHeight: 'calc(100vh - 80px)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', color: '#ffffff' }}>
-          <h1 style={{ fontSize: '3rem', marginBottom: '20px', color: '#ff6b35' }}>Welcome, {user.name}!</h1>
-          <div style={{ 
-            padding: '30px', 
-            backgroundColor: 'rgba(100, 108, 255, 0.1)', 
-            borderRadius: '12px',
-            backdropFilter: 'blur(10px)',
-          }}>
-            <p style={{ fontSize: '1.1rem', marginBottom: '10px' }}><strong>Email:</strong> {user.email}</p>
-            <p style={{ fontSize: '1.1rem' }}><strong>Role:</strong> {user.is_member ? 'Member' : 'User'}</p>
-            
-            {user.is_member && (
-              <div style={{ marginTop: '30px', padding: '20px', backgroundColor: 'rgba(100, 108, 255, 0.2)', borderRadius: '8px' }}>
-                <h3 style={{ color: '#ff6b35', marginBottom: '10px' }}>Member Area</h3>
-                <p>You are a member of this system. Visit the Membership page to view available offers.</p>
-              </div>
-            )}
-          </div>
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '1200px', 
+        margin: '0 auto', 
+        color: '#ffffff',
+        padding: '20px 0',
+      }}>
+        <h1 style={{ fontSize: '3rem', marginBottom: '20px', color: '#ff6b35', fontWeight: 800 }}>Welcome, {user.name}!</h1>
+        <div style={{ 
+          padding: '30px', 
+          backgroundColor: 'rgba(100, 108, 255, 0.1)', 
+          borderRadius: '12px',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(100, 108, 255, 0.3)',
+        }}>
+          <p style={{ fontSize: '1.1rem', marginBottom: '10px', color: 'rgba(255, 255, 255, 0.9)' }}>
+            <strong style={{ color: '#ffffff' }}>Email:</strong> {user.email}
+          </p>
+          <p style={{ fontSize: '1.1rem', color: 'rgba(255, 255, 255, 0.9)' }}>
+            <strong style={{ color: '#ffffff' }}>Role:</strong> {user.is_member ? 'Member' : 'User'}
+          </p>
+          
+          {user.is_member && (
+            <div style={{ marginTop: '30px', padding: '20px', backgroundColor: 'rgba(100, 108, 255, 0.2)', borderRadius: '8px', border: '1px solid rgba(100, 108, 255, 0.3)' }}>
+              <h3 style={{ color: '#ff6b35', marginBottom: '10px', fontSize: '1.3rem', fontWeight: 700 }}>Member Area</h3>
+              <p style={{ color: 'rgba(255, 255, 255, 0.9)' }}>You are a member of this system. Visit the Membership page to view available offers.</p>
+            </div>
+          )}
         </div>
       </div>
     </MemberLayout>

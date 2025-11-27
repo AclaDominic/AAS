@@ -1,0 +1,756 @@
+/* Member Pages Common Styles */
+.member-loading {
+  padding: 40px;
+  text-align: center;
+  color: #ffffff;
+  font-size: 1.2rem;
+}
+
+/* Membership Page */
+.membership-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.membership-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.membership-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.membership-title-large {
+  font-size: 4rem;
+  font-weight: 900;
+  color: #ff6b35;
+  margin: 0 0 10px 0;
+  line-height: 1;
+}
+
+.membership-title-small {
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin: 0 0 30px 0;
+  font-weight: 400;
+}
+
+.membership-offers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Billing Page */
+.billing-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.billing-title {
+  font-size: 3rem;
+  margin-bottom: 30px;
+  color: #ff6b35;
+  font-weight: 800;
+}
+
+.billing-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid rgba(100, 108, 255, 0.3);
+}
+
+.billing-tab {
+  padding: 12px 24px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: normal;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.billing-tab:hover {
+  color: #ffffff;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.billing-tab.active {
+  background: #646cff;
+  color: #ffffff;
+  border-bottom-color: #ff6b35;
+  font-weight: bold;
+}
+
+.billing-empty {
+  padding: 40px;
+  text-align: center;
+  background: rgba(100, 108, 255, 0.1);
+  border-radius: 12px;
+  color: #ffffff;
+}
+
+.billing-empty p {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.billing-empty p:last-child {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1rem;
+}
+
+.billing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.billing-card {
+  background: rgba(100, 108, 255, 0.1);
+  border-radius: 12px;
+  padding: 25px;
+  border: 1px solid rgba(100, 108, 255, 0.3);
+}
+
+.billing-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 15px;
+}
+
+.billing-card-title {
+  color: #ffffff;
+  margin: 0;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.billing-status-badge {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.billing-card-info {
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 5px;
+  font-size: 0.95rem;
+}
+
+.billing-card-price {
+  text-align: right;
+  min-width: 200px;
+}
+
+.billing-price-amount {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.billing-card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.billing-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+.billing-button-primary {
+  background: #646cff;
+  color: white;
+}
+
+.billing-button-primary:hover {
+  background: #5558e8;
+}
+
+.billing-button-success {
+  background: #28a745;
+  color: white;
+}
+
+.billing-button-success:hover {
+  background: #218838;
+}
+
+.billing-button-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.billing-button-danger:hover {
+  background: #c82333;
+}
+
+.billing-payment-methods {
+  margin-top: 40px;
+}
+
+.billing-payment-methods-title {
+  font-size: 2rem;
+  color: #ffffff;
+  margin-bottom: 10px;
+  font-weight: 800;
+}
+
+.billing-payment-methods-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+}
+
+.billing-payment-icons {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.billing-payment-icon {
+  width: 80px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Court Booking Page */
+.court-booking-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.court-booking-title {
+  font-size: 2.5rem;
+  margin-bottom: 40px;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.court-booking-section-title {
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin-bottom: 24px;
+  font-weight: 700;
+}
+
+.court-booking-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.court-booking-calendar-section {
+  position: sticky;
+  top: 20px;
+  width: 100%;
+}
+
+
+.court-booking-slots-section {
+  min-height: 400px;
+}
+
+.court-booking-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.court-booking-placeholder svg {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.court-booking-placeholder p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.court-booking-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.court-booking-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(59, 130, 246, 0.2);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.court-booking-spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.court-booking-time-section {
+  margin-bottom: 32px;
+}
+
+.court-booking-duration-section {
+  margin-bottom: 32px;
+}
+
+.court-booking-action-section {
+  margin-top: 30px;
+}
+
+.court-booking-message {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.court-booking-message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.court-booking-message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.court-booking-field {
+  margin-bottom: 30px;
+}
+
+.court-booking-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #ffffff;
+}
+
+.court-booking-input {
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  font-size: 1rem;
+  background: rgba(30, 41, 59, 0.6);
+  color: #ffffff;
+  font-family: inherit;
+}
+
+.court-booking-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.court-booking-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.court-booking-slot {
+  padding: 20px 16px;
+  background: rgba(30, 41, 59, 0.6);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.court-booking-slot:hover:not(:disabled):not(.unavailable) {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.court-booking-slot.selected {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+  transform: scale(1.02);
+}
+
+.court-booking-slot.unavailable,
+.court-booking-slot:disabled {
+  background: rgba(30, 41, 59, 0.3);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.05);
+  opacity: 0.5;
+}
+
+.court-booking-slot.unavailable:hover,
+.court-booking-slot:disabled:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.court-booking-slot-time {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+}
+
+.court-booking-slot.selected .court-booking-slot-time {
+  color: #ffffff;
+}
+
+.court-booking-slot-courts {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+  margin-top: 4px;
+}
+
+.court-booking-slot.selected .court-booking-slot-courts {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.court-booking-select {
+  padding: 14px 18px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 1rem;
+  min-width: 250px;
+  background: rgba(30, 41, 59, 0.6);
+  color: #ffffff;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+.court-booking-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: rgba(30, 41, 59, 0.8);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+.court-booking-select:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+  background-color: rgba(30, 41, 59, 0.7);
+}
+
+.court-booking-button {
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+  min-width: 200px;
+}
+
+.court-booking-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.court-booking-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.court-booking-button:disabled {
+  background: rgba(100, 108, 255, 0.3);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+/* Reservations Page */
+.reservations-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.reservations-title {
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.reservations-layout {
+  display: grid;
+  grid-template-columns: 500px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.reservations-calendar-section {
+  position: sticky;
+  top: 20px;
+}
+
+.reservations-content-section {
+  min-height: 400px;
+}
+
+.reservations-section-title {
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.reservations-date-reservations {
+  width: 100%;
+}
+
+.reservations-empty {
+  padding: 40px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.reservations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reservations-card {
+  background: rgba(100, 108, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid rgba(100, 108, 255, 0.3);
+}
+
+.reservations-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 12px;
+}
+
+.reservations-card-header h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.reservations-card-time {
+  margin: 4px 0 0 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+.reservations-card-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.reservations-card-details p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+}
+
+.reservations-filter {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reservations-filter-label {
+  font-weight: bold;
+  color: #ffffff;
+}
+
+.reservations-filter-select {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  font-size: 1rem;
+  background: rgba(30, 41, 59, 0.6);
+  color: #ffffff;
+  font-family: inherit;
+}
+
+.reservations-table-container {
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reservations-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.reservations-table thead {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.reservations-table th {
+  padding: 16px;
+  text-align: left;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.reservations-table td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.reservations-status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.reservations-button {
+  padding: 6px 12px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.reservations-button:hover {
+  background: #c82333;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .membership-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .membership-title-large {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .court-booking-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .court-booking-calendar-section {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .billing-tabs {
+    flex-wrap: wrap;
+  }
+
+  .billing-card-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .billing-card-price {
+    text-align: left;
+  }
+
+  .court-booking-slots-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .court-booking-title {
+    font-size: 2rem;
+  }
+}
+

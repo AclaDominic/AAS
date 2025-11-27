@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { offersService } from '../../services/offersService'
 import PromoForm from './PromoForm'
+import '../../pages/admin/AdminPages.css'
 
 function PromosList() {
   const [promos, setPromos] = useState([])
@@ -71,14 +72,19 @@ function PromosList() {
   }
 
   if (loading) {
-    return <div>Loading promos...</div>
+    return (
+      <div className="admin-loading">
+        <div className="admin-spinner"></div>
+        <p>Loading promos...</p>
+      </div>
+    )
   }
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2>Promos</h2>
-        <button onClick={handleCreate} style={{ padding: '10px 20px', backgroundColor: '#646cff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+        <h2 className="admin-card-title" style={{ margin: 0, fontSize: '1.8rem', color: 'rgba(255, 255, 255, 0.9)' }}>Promos</h2>
+        <button onClick={handleCreate} className="admin-button admin-button-primary">
           Create Promo
         </button>
       </div>
@@ -91,68 +97,67 @@ function PromosList() {
         />
       )}
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white', borderRadius: '8px', overflow: 'hidden' }}>
-        <thead>
-          <tr style={{ backgroundColor: '#f5f5f5' }}>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Name</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Discount</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Category</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Start Date</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>End Date</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Status</th>
-            <th style={{ padding: '12px', textAlign: 'left', borderBottom: '2px solid #ddd' }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {promos.length === 0 ? (
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
             <tr>
-              <td colSpan="7" style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                No promos found. Create your first promo!
-              </td>
+              <th>Name</th>
+              <th>Discount</th>
+              <th>Category</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
-          ) : (
-            promos.map((promo) => (
-              <tr key={promo.id} style={{ borderBottom: '1px solid #eee' }}>
-                <td style={{ padding: '12px' }}>{promo.name}</td>
-                <td style={{ padding: '12px' }}>
-                  {promo.discount_type === 'PERCENTAGE' 
-                    ? `${promo.discount_value}%` 
-                    : `$${parseFloat(promo.discount_value).toFixed(2)}`}
-                </td>
-                <td style={{ padding: '12px' }}>
-                  {promo.applicable_to_category ? promo.applicable_to_category.replace('_', ' ') : 'ALL'}
-                </td>
-                <td style={{ padding: '12px' }}>{formatDate(promo.start_date)}</td>
-                <td style={{ padding: '12px' }}>{formatDate(promo.end_date)}</td>
-                <td style={{ padding: '12px' }}>
-                  <span style={{ 
-                    padding: '4px 8px', 
-                    borderRadius: '4px', 
-                    backgroundColor: isActive(promo) ? '#d4edda' : '#f8d7da',
-                    color: isActive(promo) ? '#155724' : '#721c24'
-                  }}>
-                    {isActive(promo) ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td style={{ padding: '12px' }}>
-                  <button 
-                    onClick={() => handleEdit(promo)}
-                    style={{ marginRight: '8px', padding: '6px 12px', backgroundColor: '#17a2b8', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(promo.id)}
-                    style={{ padding: '6px 12px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    Delete
-                  </button>
+          </thead>
+          <tbody>
+            {promos.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="admin-empty">
+                  No promos found. Create your first promo!
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              promos.map((promo) => (
+                <tr key={promo.id}>
+                  <td>{promo.name}</td>
+                  <td>
+                    {promo.discount_type === 'PERCENTAGE' 
+                      ? `${promo.discount_value}%` 
+                      : `₱${parseFloat(promo.discount_value).toFixed(2)}`}
+                  </td>
+                  <td>
+                    {promo.applicable_to_category ? promo.applicable_to_category.replace('_', ' ') : 'ALL'}
+                  </td>
+                  <td>{formatDate(promo.start_date)}</td>
+                  <td>{formatDate(promo.end_date)}</td>
+                  <td>
+                    <span className={`admin-badge ${isActive(promo) ? 'admin-badge-success' : 'admin-badge-danger'}`}>
+                      {isActive(promo) ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td>
+                    <button 
+                      onClick={() => handleEdit(promo)}
+                      className="admin-button admin-button-secondary"
+                      style={{ marginRight: '8px', padding: '6px 12px', fontSize: '0.85rem' }}
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(promo.id)}
+                      className="admin-button admin-button-danger"
+                      style={{ padding: '6px 12px', fontSize: '0.85rem' }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

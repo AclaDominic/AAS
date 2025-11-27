@@ -3,6 +3,7 @@ import { offersService } from '../../services/offersService'
 import MemberLayout from '../../components/layout/MemberLayout'
 import OfferCard from '../../components/member/OfferCard'
 import PaymentMethodModal from '../../components/member/PaymentMethodModal'
+import './MemberPages.css'
 
 function Membership() {
   const [offers, setOffers] = useState([])
@@ -96,7 +97,6 @@ function Membership() {
     setSelectedOffer(null)
     setSelectedPromo(null)
     setSelectedDiscount(null)
-    // Reload data to refresh offers
     loadData()
   }
 
@@ -106,9 +106,7 @@ function Membership() {
   if (loading) {
     return (
       <MemberLayout>
-        <div style={{ padding: '40px', textAlign: 'center', color: '#ffffff' }}>
-          Loading...
-        </div>
+        <div className="member-loading">Loading...</div>
       </MemberLayout>
     )
   }
@@ -129,220 +127,42 @@ function Membership() {
           onSuccess={handlePaymentSuccess}
         />
       )}
-      <div style={{ padding: '40px', minHeight: 'calc(100vh - 80px)' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', maxWidth: '1400px', margin: '0 auto' }}>
+      <div className="membership-container">
+        <div className="membership-grid">
           {/* GYM Section */}
-          <div>
-            <h1 style={{ 
-              fontSize: '4rem', 
-              fontWeight: 'bold', 
-              color: '#ff6b35', 
-              margin: '0 0 10px 0',
-              lineHeight: '1',
-            }}>
-              GYM
-            </h1>
-            <h2 style={{ 
-              fontSize: '1.5rem', 
-              color: '#ffffff', 
-              margin: '0 0 30px 0',
-              fontWeight: 'normal',
-            }}>
-              OFFERS
-            </h2>
+          <div className="membership-section">
+            <h1 className="membership-title-large">GYM</h1>
+            <h2 className="membership-title-small">OFFERS</h2>
 
-            {/* Ordinary Offers */}
-            <div style={{ marginBottom: '30px' }}>
-              <h3 style={{ color: '#ffffff', marginBottom: '15px', fontSize: '1.2rem' }}>Regular Offers</h3>
-              <div style={{ 
-                maxHeight: '400px', 
-                overflowY: 'auto', 
-                paddingRight: '10px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#646cff #1a1a1a',
-              }}>
-                {gymOffers.map((offer) => (
-                  <OfferCard
-                    key={offer.id}
-                    offer={offer}
-                    formatPrice={formatPrice}
-                    getDurationText={getDurationText}
-                    onPurchase={handlePurchase}
-                  />
-                ))}
-              </div>
+            <div className="membership-offers-list">
+              {gymOffers.map((offer) => (
+                <OfferCard
+                  key={offer.id}
+                  offer={offer}
+                  formatPrice={formatPrice}
+                  getDurationText={getDurationText}
+                  onPurchase={handlePurchase}
+                />
+              ))}
             </div>
-
-            {/* Promos */}
-            {promos.filter(p => isPromoApplicable(p, 'GYM')).length > 0 && (
-              <div style={{ marginBottom: '30px' }}>
-                <h3 style={{ color: '#ffffff', marginBottom: '15px', fontSize: '1.2rem' }}>Promos</h3>
-                <div style={{ 
-                  maxHeight: '300px', 
-                  overflowY: 'auto', 
-                  paddingRight: '10px',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: '#646cff #1a1a1a',
-                }}>
-                  {promos
-                    .filter(p => isPromoApplicable(p, 'GYM'))
-                    .map((promo) => (
-                      <div key={promo.id} style={{ marginBottom: '15px' }}>
-                        {gymOffers.map((offer) => (
-                          <OfferCard
-                            key={`${offer.id}-${promo.id}`}
-                            offer={offer}
-                            promo={promo}
-                            formatPrice={formatPrice}
-                            getDurationText={getDurationText}
-                            calculatePriceWithDiscount={calculatePriceWithDiscount}
-                            onPurchase={handlePurchase}
-                          />
-                        ))}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* First-Time Discounts */}
-            {eligibility?.eligible && firstTimeDiscounts.filter(d => isDiscountApplicable(d, 'GYM')).length > 0 && (
-              <div>
-                <h3 style={{ color: '#ffffff', marginBottom: '15px', fontSize: '1.2rem' }}>New User</h3>
-                <div style={{ 
-                  maxHeight: '300px', 
-                  overflowY: 'auto', 
-                  paddingRight: '10px',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: '#646cff #1a1a1a',
-                }}>
-                  {firstTimeDiscounts
-                    .filter(d => isDiscountApplicable(d, 'GYM'))
-                    .map((discount) => (
-                      <div key={discount.id} style={{ marginBottom: '15px' }}>
-                        {gymOffers.map((offer) => (
-                          <OfferCard
-                            key={`${offer.id}-${discount.id}`}
-                            offer={offer}
-                            firstTimeDiscount={discount}
-                            formatPrice={formatPrice}
-                            getDurationText={getDurationText}
-                            calculatePriceWithDiscount={calculatePriceWithDiscount}
-                            onPurchase={handlePurchase}
-                          />
-                        ))}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* BADMINTON Section */}
-          <div>
-            <h1 style={{ 
-              fontSize: '4rem', 
-              fontWeight: 'bold', 
-              color: '#ff6b35', 
-              margin: '0 0 10px 0',
-              lineHeight: '1',
-            }}>
-              BADMINTON
-            </h1>
-            <h2 style={{ 
-              fontSize: '1.5rem', 
-              color: '#ffffff', 
-              margin: '0 0 30px 0',
-              fontWeight: 'normal',
-            }}>
-              OFFERS
-            </h2>
+          <div className="membership-section">
+            <h1 className="membership-title-large">BADMINTON</h1>
+            <h2 className="membership-title-small">OFFERS</h2>
 
-            {/* Ordinary Offers */}
-            <div style={{ marginBottom: '30px' }}>
-              <h3 style={{ color: '#ffffff', marginBottom: '15px', fontSize: '1.2rem' }}>Regular Offers</h3>
-              <div style={{ 
-                maxHeight: '400px', 
-                overflowY: 'auto', 
-                paddingRight: '10px',
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#646cff #1a1a1a',
-              }}>
-                {badmintonOffers.map((offer) => (
-                  <OfferCard
-                    key={offer.id}
-                    offer={offer}
-                    formatPrice={formatPrice}
-                    getDurationText={getDurationText}
-                    onPurchase={handlePurchase}
-                  />
-                ))}
-              </div>
+            <div className="membership-offers-list">
+              {badmintonOffers.map((offer) => (
+                <OfferCard
+                  key={offer.id}
+                  offer={offer}
+                  formatPrice={formatPrice}
+                  getDurationText={getDurationText}
+                  onPurchase={handlePurchase}
+                />
+              ))}
             </div>
-
-            {/* Promos */}
-            {promos.filter(p => isPromoApplicable(p, 'BADMINTON_COURT')).length > 0 && (
-              <div style={{ marginBottom: '30px' }}>
-                <h3 style={{ color: '#ffffff', marginBottom: '15px', fontSize: '1.2rem' }}>Promos</h3>
-                <div style={{ 
-                  maxHeight: '300px', 
-                  overflowY: 'auto', 
-                  paddingRight: '10px',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: '#646cff #1a1a1a',
-                }}>
-                  {promos
-                    .filter(p => isPromoApplicable(p, 'BADMINTON_COURT'))
-                    .map((promo) => (
-                      <div key={promo.id} style={{ marginBottom: '15px' }}>
-                        {badmintonOffers.map((offer) => (
-                          <OfferCard
-                            key={`${offer.id}-${promo.id}`}
-                            offer={offer}
-                            promo={promo}
-                            formatPrice={formatPrice}
-                            getDurationText={getDurationText}
-                            calculatePriceWithDiscount={calculatePriceWithDiscount}
-                            onPurchase={handlePurchase}
-                          />
-                        ))}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* First-Time Discounts */}
-            {eligibility?.eligible && firstTimeDiscounts.filter(d => isDiscountApplicable(d, 'BADMINTON_COURT')).length > 0 && (
-              <div>
-                <h3 style={{ color: '#ffffff', marginBottom: '15px', fontSize: '1.2rem' }}>New User</h3>
-                <div style={{ 
-                  maxHeight: '300px', 
-                  overflowY: 'auto', 
-                  paddingRight: '10px',
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: '#646cff #1a1a1a',
-                }}>
-                  {firstTimeDiscounts
-                    .filter(d => isDiscountApplicable(d, 'BADMINTON_COURT'))
-                    .map((discount) => (
-                      <div key={discount.id} style={{ marginBottom: '15px' }}>
-                        {badmintonOffers.map((offer) => (
-                          <OfferCard
-                            key={`${offer.id}-${discount.id}`}
-                            offer={offer}
-                            firstTimeDiscount={discount}
-                            formatPrice={formatPrice}
-                            getDurationText={getDurationText}
-                            calculatePriceWithDiscount={calculatePriceWithDiscount}
-                            onPurchase={handlePurchase}
-                          />
-                        ))}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -351,4 +171,3 @@ function Membership() {
 }
 
 export default Membership
-

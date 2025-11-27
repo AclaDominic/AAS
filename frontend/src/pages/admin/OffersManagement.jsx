@@ -3,6 +3,7 @@ import AdminLayout from '../../components/layout/AdminLayout'
 import OffersList from '../../components/admin/OffersList'
 import PromosList from '../../components/admin/PromosList'
 import FirstTimeDiscountsList from '../../components/admin/FirstTimeDiscountsList'
+import './AdminPages.css'
 
 function OffersManagement() {
   const [activeTab, setActiveTab] = useState('offers')
@@ -15,31 +16,16 @@ function OffersManagement() {
 
   return (
     <AdminLayout>
-      <div style={{ padding: '40px' }}>
-        <h1 style={{ marginBottom: '30px', fontSize: '2.5rem' }}>Offers Management</h1>
+      <div className="admin-page-container">
+        <h1 className="admin-page-title">Offers Management</h1>
 
         {/* Tabs */}
-        <div style={{ 
-          display: 'flex', 
-          borderBottom: '2px solid #ddd', 
-          marginBottom: '30px',
-          gap: '10px'
-        }}>
+        <div className="admin-tabs-container">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: 'transparent',
-                border: 'none',
-                borderBottom: activeTab === tab.id ? '3px solid #646cff' : '3px solid transparent',
-                color: activeTab === tab.id ? '#646cff' : '#666',
-                fontWeight: activeTab === tab.id ? 'bold' : 'normal',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                transition: 'all 0.2s',
-              }}
+              className={`admin-tab ${activeTab === tab.id ? 'active' : ''}`}
             >
               {tab.label}
             </button>

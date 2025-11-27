@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import MemberLayout from '../../components/layout/MemberLayout'
 import api from '../../services/api'
+import './MemberPages.css'
 
 function MyReservations() {
   const [reservations, setReservations] = useState([])
@@ -73,45 +74,29 @@ function MyReservations() {
   if (loading) {
     return (
       <MemberLayout>
-        <div style={{ padding: '40px' }}>
-          <div>Loading...</div>
-        </div>
+        <div className="member-loading">Loading...</div>
       </MemberLayout>
     )
   }
 
   return (
     <MemberLayout>
-      <div style={{ padding: '40px' }}>
-        <h1 style={{ marginBottom: '30px', fontSize: '2.5rem' }}>My Reservations</h1>
+      <div className="reservations-container">
+        <h1 className="reservations-title">My Reservations</h1>
 
         {message && (
-          <div
-            style={{
-              padding: '12px 16px',
-              marginBottom: '20px',
-              borderRadius: '4px',
-              backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da',
-              color: message.type === 'success' ? '#155724' : '#721c24',
-              border: `1px solid ${message.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`,
-            }}
-          >
+          <div className={`court-booking-message ${message.type}`} style={{ marginBottom: '20px' }}>
             {message.text}
           </div>
         )}
 
         {/* Status Filter */}
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{ marginRight: '12px', fontWeight: 'bold' }}>Filter:</label>
+        <div className="reservations-filter">
+          <label className="reservations-filter-label">Filter:</label>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            style={{
-              padding: '8px 12px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '1rem',
-            }}
+            className="reservations-filter-select"
           >
             <option value="all">All Reservations</option>
             <option value="upcoming">Upcoming</option>
@@ -121,37 +106,30 @@ function MyReservations() {
         </div>
 
         {/* Reservations List */}
-        <div
-          style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            overflow: 'hidden',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          }}
-        >
+        <div className="reservations-table-container">
           {reservations.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+            <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)' }}>
               No reservations found
             </div>
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table className="reservations-table">
               <thead>
-                <tr style={{ backgroundColor: '#f8f9fa' }}>
-                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Date</th>
-                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Time</th>
-                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Court</th>
-                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Duration</th>
-                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Status</th>
-                  <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Actions</th>
+                <tr>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Court</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {reservations.map((reservation) => (
-                  <tr key={reservation.id} style={{ borderBottom: '1px solid #dee2e6' }}>
-                    <td style={{ padding: '16px' }}>
+                  <tr key={reservation.id}>
+                    <td>
                       {new Date(reservation.start_time).toLocaleDateString()}
                     </td>
-                    <td style={{ padding: '16px' }}>
+                    <td>
                       {new Date(reservation.start_time).toLocaleTimeString([], {
                         hour: '2-digit',
                         minute: '2-digit',
@@ -162,36 +140,25 @@ function MyReservations() {
                         minute: '2-digit',
                       })}
                     </td>
-                    <td style={{ padding: '16px' }}>Court {reservation.court_number}</td>
-                    <td style={{ padding: '16px' }}>{formatDuration(reservation.duration_minutes)}</td>
-                    <td style={{ padding: '16px' }}>
+                    <td>Court {reservation.court_number}</td>
+                    <td>{formatDuration(reservation.duration_minutes)}</td>
+                    <td>
                       <span
+                        className="reservations-status-badge"
                         style={{
-                          padding: '4px 12px',
-                          borderRadius: '12px',
                           backgroundColor: getStatusColor(reservation.status) + '20',
                           color: getStatusColor(reservation.status),
-                          fontSize: '0.875rem',
-                          fontWeight: 'bold',
                         }}
                       >
                         {reservation.status}
                       </span>
                     </td>
-                    <td style={{ padding: '16px' }}>
+                    <td>
                       {reservation.status === 'CONFIRMED' &&
                         new Date(reservation.start_time) > new Date() && (
                           <button
                             onClick={() => handleCancel(reservation.id)}
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: '#dc3545',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '0.875rem',
-                            }}
+                            className="reservations-button"
                           >
                             Cancel
                           </button>
@@ -209,4 +176,3 @@ function MyReservations() {
 }
 
 export default MyReservations
-

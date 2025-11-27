@@ -3,6 +3,7 @@ import { membersService } from '../../services/membersService'
 import AdminLayout from '../../components/layout/AdminLayout'
 import MembersList from '../../components/admin/MembersList'
 import MemberDetail from '../../components/admin/MemberDetail'
+import './AdminPages.css'
 
 function MembersManagement() {
   const [members, setMembers] = useState([])
@@ -80,36 +81,27 @@ function MembersManagement() {
 
   return (
     <AdminLayout>
-      <div style={{ padding: '40px' }}>
-        <h1 style={{ marginBottom: '30px', fontSize: '2.5rem', color: '#646cff' }}>
-          Members Management
-        </h1>
+      <div className="admin-page-container">
+        <h1 className="admin-page-title">Members Management</h1>
 
         {/* Statistics Cards */}
         {stats && (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-              gap: '20px',
-              marginBottom: '30px',
-            }}
-          >
-            <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>Total Members</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#646cff' }}>{stats.total_members}</div>
+          <div className="admin-stats-grid">
+            <div className="admin-stat-card">
+              <div className="admin-stat-label">Total Members</div>
+              <div className="admin-stat-value admin-stat-value-primary">{stats.total_members}</div>
             </div>
-            <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>Active</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#28a745' }}>{stats.active_members}</div>
+            <div className="admin-stat-card">
+              <div className="admin-stat-label">Active</div>
+              <div className="admin-stat-value admin-stat-value-success">{stats.active_members}</div>
             </div>
-            <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>Expired</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#ffc107' }}>{stats.expired_members}</div>
+            <div className="admin-stat-card">
+              <div className="admin-stat-label">Expired</div>
+              <div className="admin-stat-value admin-stat-value-warning">{stats.expired_members}</div>
             </div>
-            <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-              <div style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>Total Revenue</div>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#646cff' }}>
+            <div className="admin-stat-card">
+              <div className="admin-stat-label">Total Revenue</div>
+              <div className="admin-stat-value admin-stat-value-primary">
                 ₱{new Intl.NumberFormat('en-PH').format(stats.total_revenue)}
               </div>
             </div>
@@ -117,63 +109,31 @@ function MembersManagement() {
         )}
 
         {/* Search and Filters */}
-        <div
-          style={{
-            backgroundColor: 'white',
-            padding: '20px',
-            borderRadius: '8px',
-            marginBottom: '20px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          }}
-        >
+        <div className="admin-card">
           <form onSubmit={handleSearch} style={{ marginBottom: '15px' }}>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="admin-search-bar">
               <input
                 type="text"
+                className="admin-input admin-search-input"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name or email..."
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '1rem',
-                }}
               />
-              <button
-                type="submit"
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#646cff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: 'pointer',
-                  fontSize: '1rem',
-                }}
-              >
+              <button type="submit" className="admin-button admin-button-primary">
                 Search
               </button>
             </div>
           </form>
 
           <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem', color: '#666' }}>
-                Status
-              </label>
+            <div className="admin-form-group" style={{ minWidth: '150px' }}>
+              <label className="admin-label">Status</label>
               <select
+                className="admin-select admin-filter-select"
                 value={statusFilter}
                 onChange={(e) => {
                   setStatusFilter(e.target.value)
                   handleFilterChange()
-                }}
-                style={{
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '1rem',
                 }}
               >
                 <option value="">All</option>
@@ -183,21 +143,14 @@ function MembersManagement() {
               </select>
             </div>
 
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem', color: '#666' }}>
-                Category
-              </label>
+            <div className="admin-form-group" style={{ minWidth: '150px' }}>
+              <label className="admin-label">Category</label>
               <select
+                className="admin-select admin-filter-select"
                 value={categoryFilter}
                 onChange={(e) => {
                   setCategoryFilter(e.target.value)
                   handleFilterChange()
-                }}
-                style={{
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '1rem',
                 }}
               >
                 <option value="">All</option>
@@ -206,21 +159,14 @@ function MembersManagement() {
               </select>
             </div>
 
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem', color: '#666' }}>
-                Sort By
-              </label>
+            <div className="admin-form-group" style={{ minWidth: '150px' }}>
+              <label className="admin-label">Sort By</label>
               <select
+                className="admin-select admin-filter-select"
                 value={sortBy}
                 onChange={(e) => {
                   setSortBy(e.target.value)
                   handleFilterChange()
-                }}
-                style={{
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '1rem',
                 }}
               >
                 <option value="created_at">Registration Date</option>
@@ -229,21 +175,14 @@ function MembersManagement() {
               </select>
             </div>
 
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem', color: '#666' }}>
-                Order
-              </label>
+            <div className="admin-form-group" style={{ minWidth: '150px' }}>
+              <label className="admin-label">Order</label>
               <select
+                className="admin-select admin-filter-select"
                 value={sortOrder}
                 onChange={(e) => {
                   setSortOrder(e.target.value)
                   handleFilterChange()
-                }}
-                style={{
-                  padding: '8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '6px',
-                  fontSize: '1rem',
                 }}
               >
                 <option value="desc">Descending</option>
@@ -254,41 +193,27 @@ function MembersManagement() {
         </div>
 
         {/* Members List */}
-        <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+        <div className="admin-table-container">
           <MembersList members={members} onMemberClick={handleMemberClick} loading={loading} />
         </div>
 
         {/* Pagination */}
         {pagination && pagination.last_page > 1 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '20px' }}>
+          <div className="admin-pagination">
             <button
+              className="admin-pagination-button"
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: currentPage === 1 ? '#ccc' : '#646cff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-              }}
             >
               Previous
             </button>
-            <span style={{ padding: '8px 16px', display: 'flex', alignItems: 'center' }}>
+            <span style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', color: '#ffffff' }}>
               Page {pagination.current_page} of {pagination.last_page}
             </span>
             <button
+              className="admin-pagination-button"
               onClick={() => setCurrentPage((p) => Math.min(pagination.last_page, p + 1))}
               disabled={currentPage === pagination.last_page}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: currentPage === pagination.last_page ? '#ccc' : '#646cff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: currentPage === pagination.last_page ? 'not-allowed' : 'pointer',
-              }}
             >
               Next
             </button>

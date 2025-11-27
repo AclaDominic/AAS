@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { membersService } from '../../services/membersService'
 import AdminLayout from '../../components/layout/AdminLayout'
 import api from '../../services/api'
+import './AdminPages.css'
 
 function Reports() {
   const [activeTab, setActiveTab] = useState('payment-history')
@@ -88,89 +89,59 @@ function Reports() {
 
   return (
     <AdminLayout>
-      <div style={{ padding: '40px' }}>
-        <h1 style={{ marginBottom: '30px', fontSize: '2.5rem', color: '#646cff' }}>Reports</h1>
+      <div className="admin-page-container">
+        <h1 className="admin-page-title">Reports</h1>
 
         {/* Tab Navigation */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '30px', borderBottom: '2px solid #ddd' }}>
+        <div className="admin-tabs-container">
           <button
             onClick={() => setActiveTab('payment-history')}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: activeTab === 'payment-history' ? '#646cff' : 'transparent',
-              color: activeTab === 'payment-history' ? '#ffffff' : '#333',
-              border: 'none',
-              borderBottom: activeTab === 'payment-history' ? '3px solid #646cff' : '3px solid transparent',
-              borderRadius: '6px 6px 0 0',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: activeTab === 'payment-history' ? 'bold' : 'normal',
-            }}
+            className={`admin-tab ${activeTab === 'payment-history' ? 'active' : ''}`}
           >
             Payment History
           </button>
           <button
             onClick={() => setActiveTab('customer-balances')}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: activeTab === 'customer-balances' ? '#646cff' : 'transparent',
-              color: activeTab === 'customer-balances' ? '#ffffff' : '#333',
-              border: 'none',
-              borderBottom: activeTab === 'customer-balances' ? '3px solid #646cff' : '3px solid transparent',
-              borderRadius: '6px 6px 0 0',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: activeTab === 'customer-balances' ? 'bold' : 'normal',
-            }}
+            className={`admin-tab ${activeTab === 'customer-balances' ? 'active' : ''}`}
           >
             Customer Balances
           </button>
           <button
             onClick={() => setActiveTab('payment-summary')}
-            style={{
-              padding: '12px 24px',
-              backgroundColor: activeTab === 'payment-summary' ? '#646cff' : 'transparent',
-              color: activeTab === 'payment-summary' ? '#ffffff' : '#333',
-              border: 'none',
-              borderBottom: activeTab === 'payment-summary' ? '3px solid #646cff' : '3px solid transparent',
-              borderRadius: '6px 6px 0 0',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: activeTab === 'payment-summary' ? 'bold' : 'normal',
-            }}
+            className={`admin-tab ${activeTab === 'payment-summary' ? 'active' : ''}`}
           >
             Payment Summary
           </button>
         </div>
 
         {/* Filters */}
-        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem' }}>Start Date</label>
+        <div className="admin-card" style={{ marginBottom: '20px' }}>
+          <div className="admin-search-bar" style={{ flexWrap: 'wrap' }}>
+            <div className="admin-form-group" style={{ minWidth: '150px' }}>
+              <label className="admin-label">Start Date</label>
               <input
                 type="date"
+                className="admin-input"
                 value={filters.start_date}
                 onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
-                style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
               />
             </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem' }}>End Date</label>
+            <div className="admin-form-group" style={{ minWidth: '150px' }}>
+              <label className="admin-label">End Date</label>
               <input
                 type="date"
+                className="admin-input"
                 value={filters.end_date}
                 onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
-                style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
               />
             </div>
             {activeTab === 'payment-history' && (
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem' }}>Status</label>
+              <div className="admin-form-group" style={{ minWidth: '150px' }}>
+                <label className="admin-label">Status</label>
                 <select
+                  className="admin-select"
                   value={filters.status}
                   onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                  style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
                 >
                   <option value="">All</option>
                   <option value="PAID">Paid</option>
@@ -180,12 +151,12 @@ function Reports() {
               </div>
             )}
             {activeTab === 'payment-summary' && (
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '0.9rem' }}>Period</label>
+              <div className="admin-form-group" style={{ minWidth: '150px' }}>
+                <label className="admin-label">Period</label>
                 <select
+                  className="admin-select"
                   value={filters.period}
                   onChange={(e) => setFilters({ ...filters, period: e.target.value })}
-                  style={{ padding: '8px', border: '1px solid #ddd', borderRadius: '6px' }}
                 >
                   <option value="daily">Daily</option>
                   <option value="weekly">Weekly</option>
@@ -197,14 +168,7 @@ function Reports() {
               <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                 <button
                   onClick={handleExport}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#28a745',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                  }}
+                  className="admin-button admin-button-success"
                 >
                   Export CSV
                 </button>
@@ -215,37 +179,50 @@ function Reports() {
 
         {/* Content */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>
+          <div className="admin-loading">
+            <div className="admin-spinner"></div>
+            <p>Loading...</p>
+          </div>
         ) : (
-          <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '20px' }}>
+          <div className="admin-table-container">
             {activeTab === 'payment-history' && (
               <div>
-                <h2 style={{ marginBottom: '20px' }}>Payment History</h2>
+                <h2 className="admin-card-title" style={{ marginBottom: '20px', color: '#ffffff' }}>Payment History</h2>
                 {paymentHistory.length === 0 ? (
-                  <p>No payments found.</p>
+                  <div className="admin-empty">
+                    <p>No payments found.</p>
+                  </div>
                 ) : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <table className="admin-table">
                     <thead>
-                      <tr style={{ backgroundColor: '#f8f9fa' }}>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>ID</th>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>User</th>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>Membership</th>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>Amount</th>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>Status</th>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>Payment Method</th>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>Date</th>
+                      <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Membership</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Payment Method</th>
+                        <th>Date</th>
                       </tr>
                     </thead>
                     <tbody>
                       {paymentHistory.map((payment) => (
-                        <tr key={payment.id} style={{ borderBottom: '1px solid #ddd' }}>
-                          <td style={{ padding: '12px' }}>{payment.id}</td>
-                          <td style={{ padding: '12px' }}>{payment.user?.name}</td>
-                          <td style={{ padding: '12px' }}>{payment.membership_offer?.name}</td>
-                          <td style={{ padding: '12px' }}>{formatPrice(payment.amount)}</td>
-                          <td style={{ padding: '12px' }}>{payment.status}</td>
-                          <td style={{ padding: '12px' }}>{payment.payment_method?.replace('_', ' ')}</td>
-                          <td style={{ padding: '12px' }}>{formatDate(payment.payment_date || payment.created_at)}</td>
+                        <tr key={payment.id}>
+                          <td>{payment.id}</td>
+                          <td>{payment.user?.name}</td>
+                          <td>{payment.membership_offer?.name}</td>
+                          <td>{formatPrice(payment.amount)}</td>
+                          <td>
+                            <span className={`admin-badge ${
+                              payment.status === 'PAID' ? 'admin-badge-success' :
+                              payment.status === 'PENDING' ? 'admin-badge-warning' :
+                              'admin-badge-danger'
+                            }`}>
+                              {payment.status}
+                            </span>
+                          </td>
+                          <td>{payment.payment_method?.replace('_', ' ')}</td>
+                          <td>{formatDate(payment.payment_date || payment.created_at)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -256,29 +233,33 @@ function Reports() {
 
             {activeTab === 'customer-balances' && (
               <div>
-                <h2 style={{ marginBottom: '20px' }}>Customer Balances</h2>
+                <h2 className="admin-card-title" style={{ marginBottom: '20px', color: '#ffffff' }}>Customer Balances</h2>
                 {customerBalances.length === 0 ? (
-                  <p>No customer data found.</p>
+                  <div className="admin-empty">
+                    <p>No customer data found.</p>
+                  </div>
                 ) : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <table className="admin-table">
                     <thead>
-                      <tr style={{ backgroundColor: '#f8f9fa' }}>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>Name</th>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>Email</th>
-                        <th style={{ padding: '12px', textAlign: 'right' }}>Total Paid</th>
-                        <th style={{ padding: '12px', textAlign: 'right' }}>Total Owed</th>
-                        <th style={{ padding: '12px', textAlign: 'right' }}>Balance</th>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th style={{ textAlign: 'right' }}>Total Paid</th>
+                        <th style={{ textAlign: 'right' }}>Total Owed</th>
+                        <th style={{ textAlign: 'right' }}>Balance</th>
                       </tr>
                     </thead>
                     <tbody>
                       {customerBalances.map((customer) => (
-                        <tr key={customer.id} style={{ borderBottom: '1px solid #ddd' }}>
-                          <td style={{ padding: '12px' }}>{customer.name}</td>
-                          <td style={{ padding: '12px' }}>{customer.email}</td>
-                          <td style={{ padding: '12px', textAlign: 'right' }}>{formatPrice(customer.total_paid)}</td>
-                          <td style={{ padding: '12px', textAlign: 'right' }}>{formatPrice(customer.total_owed)}</td>
-                          <td style={{ padding: '12px', textAlign: 'right', color: customer.balance >= 0 ? '#28a745' : '#dc3545' }}>
-                            {formatPrice(customer.balance)}
+                        <tr key={customer.id}>
+                          <td>{customer.name}</td>
+                          <td>{customer.email}</td>
+                          <td style={{ textAlign: 'right' }}>{formatPrice(customer.total_paid)}</td>
+                          <td style={{ textAlign: 'right' }}>{formatPrice(customer.total_owed)}</td>
+                          <td style={{ textAlign: 'right' }}>
+                            <span className={`admin-badge ${customer.balance >= 0 ? 'admin-badge-success' : 'admin-badge-danger'}`}>
+                              {formatPrice(customer.balance)}
+                            </span>
                           </td>
                         </tr>
                       ))}
@@ -290,28 +271,30 @@ function Reports() {
 
             {activeTab === 'payment-summary' && (
               <div>
-                <h2 style={{ marginBottom: '20px' }}>Payment Summary ({filters.period})</h2>
+                <h2 className="admin-card-title" style={{ marginBottom: '20px', color: '#ffffff' }}>Payment Summary ({filters.period})</h2>
                 {paymentSummary.length === 0 ? (
-                  <p>No payment data found for the selected period.</p>
+                  <div className="admin-empty">
+                    <p>No payment data found for the selected period.</p>
+                  </div>
                 ) : (
-                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <table className="admin-table">
                     <thead>
-                      <tr style={{ backgroundColor: '#f8f9fa' }}>
-                        <th style={{ padding: '12px', textAlign: 'left' }}>Period</th>
-                        <th style={{ padding: '12px', textAlign: 'right' }}>Count</th>
-                        <th style={{ padding: '12px', textAlign: 'right' }}>Total Amount</th>
+                      <tr>
+                        <th>Period</th>
+                        <th style={{ textAlign: 'right' }}>Count</th>
+                        <th style={{ textAlign: 'right' }}>Total Amount</th>
                       </tr>
                     </thead>
                     <tbody>
                       {paymentSummary.map((item, index) => (
-                        <tr key={index} style={{ borderBottom: '1px solid #ddd' }}>
-                          <td style={{ padding: '12px' }}>
+                        <tr key={index}>
+                          <td>
                             {filters.period === 'daily' && item.date}
                             {filters.period === 'weekly' && `Week ${item.week}, ${item.year}`}
                             {filters.period === 'monthly' && `${new Date(item.year, item.month - 1).toLocaleString('default', { month: 'long' })} ${item.year}`}
                           </td>
-                          <td style={{ padding: '12px', textAlign: 'right' }}>{item.count}</td>
-                          <td style={{ padding: '12px', textAlign: 'right' }}>{formatPrice(item.total)}</td>
+                          <td style={{ textAlign: 'right' }}>{item.count}</td>
+                          <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatPrice(item.total)}</td>
                         </tr>
                       ))}
                     </tbody>
