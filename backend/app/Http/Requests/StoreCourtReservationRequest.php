@@ -23,6 +23,7 @@ class StoreCourtReservationRequest extends FormRequest
         $advanceBookingDays = \App\Models\FacilitySetting::getAdvanceBookingDays();
 
         return [
+            'category' => ['required', 'in:GYM,BADMINTON_COURT'],
             'reservation_date' => ['required', 'date', 'after_or_equal:today', 'before_or_equal:' . now()->addDays($advanceBookingDays)->format('Y-m-d')],
             'start_time' => ['required', 'date_format:Y-m-d H:i:s'],
             'duration_minutes' => ['required', 'integer', 'min:' . $minDuration, 'multiple_of:30'],

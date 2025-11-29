@@ -75,14 +75,27 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/facility/settings', [FacilitySettingController::class, 'update']);
     
     // Court Reservations
+    // Custom routes must be defined before apiResource to avoid route conflicts
+    Route::post('/reservations/{id}/cancel', [AdminCourtReservationController::class, 'cancel'])
+        ->name('admin.reservations.cancel');
+    Route::post('/reservations/{id}/update-status', [AdminCourtReservationController::class, 'updateStatus'])
+        ->name('admin.reservations.update-status');
     Route::apiResource('reservations', AdminCourtReservationController::class)
         ->only(['index', 'show'])
         ->names([
             'index' => 'admin.reservations.index',
             'show' => 'admin.reservations.show',
         ]);
-    Route::post('/reservations/{id}/cancel', [AdminCourtReservationController::class, 'cancel'])
-        ->name('admin.reservations.cancel');
+    
+    // Notifications
+    Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])
+        ->name('admin.notifications.index');
+    Route::get('/notifications/unread-count', [\App\Http\Controllers\Admin\NotificationController::class, 'unreadCount'])
+        ->name('admin.notifications.unread-count');
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])
+        ->name('admin.notifications.mark-read');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])
+        ->name('admin.notifications.mark-all-read');
 });
 
 // Public/Member routes

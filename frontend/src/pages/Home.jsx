@@ -24,11 +24,11 @@ function Home() {
         <div className="hero-content">
           <div className="hero-text">
             <h1 className="hero-headline">
-              SMASH <span className="highlight-blue">HARD</span>
+              L.R. <span className="highlight-blue">CAMACHO</span>
               <br />
-              TRAIN <span className="highlight-blue">HARD</span>
+              FITNESS GYM <span className="highlight-blue">&</span>
               <br />
-              STAY <span className="highlight-blue">FIT</span>
+              BADMINTON  <span className="highlight-blue">COURT RENTAL</span>
             </h1>
             <p className="hero-description">
               Experience the best of both worlds at L.R. Camacho Badminton & Gym—where your game meets your goals. 

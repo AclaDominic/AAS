@@ -53,13 +53,19 @@ function Reports() {
 
   const handleExport = async () => {
     try {
-      const response = await api.get('/api/admin/reports/export?type=payment_history', {
+      const params = new URLSearchParams({
+        type: 'payment_history',
+        start_date: filters.start_date,
+        end_date: filters.end_date,
+        ...(filters.status && { status: filters.status }),
+      })
+      const response = await api.get(`/api/admin/reports/export?${params}`, {
         responseType: 'blob',
       })
       const url = window.URL.createObjectURL(new Blob([response.data]))
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', `payment_history_${new Date().toISOString().split('T')[0]}.csv`)
+      link.setAttribute('download', `payment_history_${filters.start_date}_to_${filters.end_date}.csv`)
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -115,31 +121,49 @@ function Reports() {
         </div>
 
         {/* Filters */}
-        <div className="admin-card" style={{ marginBottom: '20px' }}>
-          <div className="admin-search-bar" style={{ flexWrap: 'wrap' }}>
-            <div className="admin-form-group" style={{ minWidth: '150px' }}>
-              <label className="admin-label">Start Date</label>
+        <div className="reports-filter-card">
+          <div className="reports-filter-grid">
+            <div className="reports-filter-item">
+              <label className="reports-filter-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '6px' }}>
+                  <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                Start Date
+              </label>
               <input
                 type="date"
-                className="admin-input"
+                className="reports-filter-input"
                 value={filters.start_date}
                 onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
               />
             </div>
-            <div className="admin-form-group" style={{ minWidth: '150px' }}>
-              <label className="admin-label">End Date</label>
+            <div className="reports-filter-item">
+              <label className="reports-filter-label">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '6px' }}>
+                  <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                End Date
+              </label>
               <input
                 type="date"
-                className="admin-input"
+                className="reports-filter-input"
                 value={filters.end_date}
                 onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
               />
             </div>
             {activeTab === 'payment-history' && (
-              <div className="admin-form-group" style={{ minWidth: '150px' }}>
-                <label className="admin-label">Status</label>
+              <div className="reports-filter-item">
+                <label className="reports-filter-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '6px' }}>
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Status
+                </label>
                 <select
-                  className="admin-select"
+                  className="reports-filter-select"
                   value={filters.status}
                   onChange={(e) => setFilters({ ...filters, status: e.target.value })}
                 >
@@ -151,10 +175,16 @@ function Reports() {
               </div>
             )}
             {activeTab === 'payment-summary' && (
-              <div className="admin-form-group" style={{ minWidth: '150px' }}>
-                <label className="admin-label">Period</label>
+              <div className="reports-filter-item">
+                <label className="reports-filter-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '6px' }}>
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  Period
+                </label>
                 <select
-                  className="admin-select"
+                  className="reports-filter-select"
                   value={filters.period}
                   onChange={(e) => setFilters({ ...filters, period: e.target.value })}
                 >
@@ -165,11 +195,14 @@ function Reports() {
               </div>
             )}
             {activeTab === 'payment-history' && (
-              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <div className="reports-filter-item reports-filter-export">
                 <button
                   onClick={handleExport}
-                  className="admin-button admin-button-success"
+                  className="reports-export-button"
                 >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: '8px' }}>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                   Export CSV
                 </button>
               </div>

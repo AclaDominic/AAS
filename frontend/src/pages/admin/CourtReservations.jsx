@@ -5,25 +5,34 @@ import api from '../../services/api'
 function CourtReservations() {
   const [reservations, setReservations] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('all') // all, pending, confirmed, completed
   const [filters, setFilters] = useState({
     date: '',
+    category: '',
     court_number: '',
-    status: '',
     member_search: '',
   })
   const [message, setMessage] = useState(null)
 
   useEffect(() => {
     fetchReservations()
-  }, [])
+  }, [activeTab])
 
   const fetchReservations = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
       if (filters.date) params.append('date', filters.date)
+      if (filters.category) params.append('category', filters.category)
       if (filters.court_number) params.append('court_number', filters.court_number)
-      if (filters.status) params.append('status', filters.status)
+      if (activeTab !== 'all') {
+        const statusMap = {
+          pending: 'PENDING',
+          confirmed: 'CONFIRMED',
+          completed: 'COMPLETED',
+        }
+        params.append('status', statusMap[activeTab] || activeTab.toUpperCase())
+      }
       if (filters.member_search) params.append('member_search', filters.member_search)
 
       const response = await api.get(`/api/admin/reservations?${params.toString()}`)
@@ -64,6 +73,22 @@ function CourtReservations() {
     }
   }
 
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      await api.post(`/api/admin/reservations/${id}/update-status`, {
+        status: newStatus,
+      })
+      setMessage({ type: 'success', text: 'Reservation status updated successfully!' })
+      fetchReservations()
+    } catch (error) {
+      console.error('Error updating status:', error)
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to update reservation status',
+      })
+    }
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'CONFIRMED':
@@ -89,10 +114,14 @@ function CourtReservations() {
     )
   }
 
+  const getCategoryLabel = (category) => {
+    return category === 'GYM' ? '💪 Gym' : '🏸 Badminton Court'
+  }
+
   return (
     <AdminLayout>
       <div style={{ padding: '40px' }}>
-        <h1 style={{ marginBottom: '30px', fontSize: '2.5rem' }}>Court Reservations</h1>
+        <h1 style={{ marginBottom: '30px', fontSize: '2.5rem' }}>Reservations Management</h1>
 
         {message && (
           <div
@@ -108,6 +137,42 @@ function CourtReservations() {
             {message.text}
           </div>
         )}
+
+        {/* Status Tabs */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '10px',
+            marginBottom: '30px',
+            borderBottom: '2px solid #dee2e6',
+          }}
+        >
+          {[
+            { key: 'all', label: 'All Reservations' },
+            { key: 'pending', label: 'Pending' },
+            { key: 'confirmed', label: 'Confirmed' },
+            { key: 'completed', label: 'Completed' },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: activeTab === tab.key ? '#646cff' : 'transparent',
+                color: activeTab === tab.key ? 'white' : '#666',
+                border: 'none',
+                borderBottom: activeTab === tab.key ? '3px solid #ff6b35' : '3px solid transparent',
+                borderRadius: '6px 6px 0 0',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: activeTab === tab.key ? 'bold' : 'normal',
+                transition: 'all 0.2s',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
         {/* Filters */}
         <div
@@ -135,6 +200,23 @@ function CourtReservations() {
               />
             </div>
             <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Category</label>
+              <select
+                value={filters.category}
+                onChange={(e) => handleFilterChange('category', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                }}
+              >
+                <option value="">All</option>
+                <option value="GYM">Gym</option>
+                <option value="BADMINTON_COURT">Badminton Court</option>
+              </select>
+            </div>
+            <div>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Court Number</label>
               <input
                 type="number"
@@ -149,25 +231,6 @@ function CourtReservations() {
                   borderRadius: '4px',
                 }}
               />
-            </div>
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Status</label>
-              <select
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '8px 12px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                }}
-              >
-                <option value="">All</option>
-                <option value="CONFIRMED">Confirmed</option>
-                <option value="CANCELLED">Cancelled</option>
-                <option value="COMPLETED">Completed</option>
-                <option value="PENDING">Pending</option>
-              </select>
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>Member Search</label>
@@ -213,10 +276,11 @@ function CourtReservations() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8f9fa' }}>
+                <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Member Name</th>
+                <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Category</th>
                 <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Date</th>
                 <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Time</th>
                 <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Court</th>
-                <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Member</th>
                 <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Duration</th>
                 <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Status</th>
                 <th style={{ padding: '16px', textAlign: 'left', borderBottom: '2px solid #dee2e6' }}>Actions</th>
@@ -225,13 +289,26 @@ function CourtReservations() {
             <tbody>
               {reservations.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+                  <td colSpan="8" style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
                     No reservations found
                   </td>
                 </tr>
               ) : (
                 reservations.map((reservation) => (
                   <tr key={reservation.id} style={{ borderBottom: '1px solid #dee2e6' }}>
+                    <td style={{ padding: '16px' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '1rem', marginBottom: '4px' }}>
+                        {reservation.user?.name || 'N/A'}
+                      </div>
+                      <span style={{ fontSize: '0.875rem', color: '#666' }}>
+                        {reservation.user?.email || ''}
+                      </span>
+                    </td>
+                    <td style={{ padding: '16px' }}>
+                      <span style={{ fontSize: '1rem' }}>
+                        {getCategoryLabel(reservation.category || 'BADMINTON_COURT')}
+                      </span>
+                    </td>
                     <td style={{ padding: '16px' }}>
                       {new Date(reservation.start_time).toLocaleDateString()}
                     </td>
@@ -246,13 +323,8 @@ function CourtReservations() {
                         minute: '2-digit',
                       })}
                     </td>
-                    <td style={{ padding: '16px' }}>Court {reservation.court_number}</td>
                     <td style={{ padding: '16px' }}>
-                      {reservation.user?.name || 'N/A'}
-                      <br />
-                      <span style={{ fontSize: '0.875rem', color: '#666' }}>
-                        {reservation.user?.email || ''}
-                      </span>
+                      {reservation.court_number ? `Court ${reservation.court_number}` : 'N/A'}
                     </td>
                     <td style={{ padding: '16px' }}>{reservation.duration_minutes} min</td>
                     <td style={{ padding: '16px' }}>
@@ -270,22 +342,78 @@ function CourtReservations() {
                       </span>
                     </td>
                     <td style={{ padding: '16px' }}>
-                      {reservation.status === 'CONFIRMED' && (
-                        <button
-                          onClick={() => handleCancel(reservation.id)}
-                          style={{
-                            padding: '6px 12px',
-                            backgroundColor: '#dc3545',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '4px',
-                            cursor: 'pointer',
-                            fontSize: '0.875rem',
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      )}
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {reservation.status === 'PENDING' && (
+                          <>
+                            <button
+                              onClick={() => handleUpdateStatus(reservation.id, 'CONFIRMED')}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#28a745',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem',
+                              }}
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleCancel(reservation.id)}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#dc3545',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem',
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                        {reservation.status === 'CONFIRMED' && (
+                          <>
+                            <button
+                              onClick={() => handleUpdateStatus(reservation.id, 'COMPLETED')}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#17a2b8',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem',
+                              }}
+                            >
+                              Mark Completed
+                            </button>
+                            <button
+                              onClick={() => handleCancel(reservation.id)}
+                              style={{
+                                padding: '6px 12px',
+                                backgroundColor: '#dc3545',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem',
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
+                        {reservation.status === 'COMPLETED' && (
+                          <span style={{ color: '#6c757d', fontSize: '0.875rem' }}>No actions</span>
+                        )}
+                        {reservation.status === 'CANCELLED' && (
+                          <span style={{ color: '#dc3545', fontSize: '0.875rem' }}>Cancelled</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

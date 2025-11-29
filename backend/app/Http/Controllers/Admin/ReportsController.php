@@ -170,28 +170,62 @@ class ReportsController extends Controller
         $type = $request->get('type', 'payment_history');
 
         if ($type === 'payment_history') {
-            $payments = Payment::with(['user', 'membershipOffer'])
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $query = Payment::with(['user', 'membershipOffer']);
 
-            $csv = "ID,User,Email,Membership Offer,Amount,Status,Payment Method,Payment Date\n";
+            // Apply date range filter
+            if ($request->has('start_date') && $request->has('end_date')) {
+                $query->whereBetween('created_at', [$request->start_date, $request->end_date]);
+            }
+
+            // Apply status filter
+            if ($request->has('status') && $request->status !== '') {
+                $query->where('status', $request->status);
+            }
+
+            $payments = $query->orderBy('created_at', 'desc')->get();
+
+            // Build CSV with Excel-friendly formatting
+            // Add UTF-8 BOM for proper Excel encoding
+            $csv = "\xEF\xBB\xBF";
+            
+            // Header row with proper formatting
+            $csv .= "ID,User,Email,Membership Offer,Amount,Status,Payment Method,Payment Date\n";
+            
             foreach ($payments as $payment) {
+                $userName = $payment->user ? str_replace([',', '"'], [';', '""'], $payment->user->name) : 'N/A';
+                $userEmail = $payment->user ? $payment->user->email : 'N/A';
+                $membershipName = $payment->membershipOffer ? str_replace([',', '"'], [';', '""'], $payment->membershipOffer->name) : 'N/A';
+                $paymentMethod = $payment->payment_method ? ucwords(str_replace('_', ' ', strtolower($payment->payment_method))) : 'N/A';
+                
+                // Format date as Excel-friendly format (MM/DD/YYYY HH:MM:SS)
+                $paymentDate = 'N/A';
+                if ($payment->payment_date) {
+                    $paymentDate = $payment->payment_date->format('m/d/Y H:i:s');
+                } elseif ($payment->created_at) {
+                    $paymentDate = $payment->created_at->format('m/d/Y H:i:s');
+                }
+
+                // Format amount with proper decimal places
+                $amount = number_format($payment->amount, 2, '.', '');
+
                 $csv .= sprintf(
-                    "%d,%s,%s,%s,%.2f,%s,%s,%s\n",
+                    "%d,\"%s\",\"%s\",\"%s\",%s,%s,\"%s\",\"%s\"\n",
                     $payment->id,
-                    $payment->user->name,
-                    $payment->user->email,
-                    $payment->membershipOffer->name,
-                    $payment->amount,
+                    $userName,
+                    $userEmail,
+                    $membershipName,
+                    $amount,
                     $payment->status,
-                    $payment->payment_method,
-                    $payment->payment_date ? $payment->payment_date->format('Y-m-d H:i:s') : ''
+                    $paymentMethod,
+                    $paymentDate
                 );
             }
 
+            $filename = 'payment_history_' . ($request->has('start_date') ? str_replace('-', '', $request->start_date) : 'all') . '_to_' . ($request->has('end_date') ? str_replace('-', '', $request->end_date) : 'all') . '.csv';
+
             return response($csv)
-                ->header('Content-Type', 'text/csv')
-                ->header('Content-Disposition', 'attachment; filename="payment_history_' . now()->format('Y-m-d') . '.csv"');
+                ->header('Content-Type', 'text/csv; charset=UTF-8')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
         }
 
         return response()->json(['message' => 'Invalid export type.'], 400);

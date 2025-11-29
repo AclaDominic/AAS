@@ -52,5 +52,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TestDataSeeder::class,
         ]);
+
+        // Seed reservations for both GYM and BADMINTON_COURT categories
+        $this->call([
+            ReservationSeeder::class,
+        ]);
     }
 }

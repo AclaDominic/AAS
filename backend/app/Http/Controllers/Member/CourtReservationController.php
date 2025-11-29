@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Member;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCourtReservationRequest;
 use App\Models\CourtReservation;
+use App\Models\User;
+use App\Notifications\NewReservationNotification;
 use App\Services\ReservationService;
 use App\Services\TimeSlotService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CourtReservationController extends Controller
 {
@@ -105,6 +108,7 @@ class CourtReservationController extends Controller
     {
         try {
             $user = $request->user();
+            $category = $request->category;
             $date = Carbon::parse($request->reservation_date);
             $startTime = Carbon::parse($request->start_time);
             $durationMinutes = $request->duration_minutes;
@@ -112,16 +116,57 @@ class CourtReservationController extends Controller
 
             $reservation = $this->reservationService->createReservation(
                 $user->id,
+                $category,
                 $date,
                 $startTime,
                 $durationMinutes,
                 $courtNumber
             );
 
+            // Reload reservation with user relationship for notification
+            $reservation->load('user');
+
+            // Send notification to all admin users
+            try {
+                $adminUsers = User::whereDoesntHave('member')->get();
+                
+                if ($adminUsers->isEmpty()) {
+                    Log::info('No admin users found to notify about reservation', [
+                        'reservation_id' => $reservation->id,
+                    ]);
+                } else {
+                    foreach ($adminUsers as $admin) {
+                        try {
+                            $admin->notify(new NewReservationNotification($reservation));
+                            Log::info('Notification sent to admin', [
+                                'admin_id' => $admin->id,
+                                'admin_email' => $admin->email,
+                                'reservation_id' => $reservation->id,
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to send notification to specific admin', [
+                                'admin_id' => $admin->id,
+                                'reservation_id' => $reservation->id,
+                                'error' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString(),
+                            ]);
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // Log error but don't fail the reservation creation
+                Log::error('Failed to send reservation notification to admins', [
+                    'reservation_id' => $reservation->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+
             return response()->json([
                 'message' => 'Reservation created successfully.',
                 'reservation' => [
                     'id' => $reservation->id,
+                    'category' => $reservation->category,
                     'court_number' => $reservation->court_number,
                     'reservation_date' => $reservation->reservation_date->format('Y-m-d'),
                     'start_time' => $reservation->start_time->format('Y-m-d H:i:s'),
@@ -149,6 +194,7 @@ class CourtReservationController extends Controller
 
         return response()->json([
             'id' => $reservation->id,
+            'category' => $reservation->category,
             'court_number' => $reservation->court_number,
             'reservation_date' => $reservation->reservation_date->format('Y-m-d'),
             'start_time' => $reservation->start_time->format('Y-m-d H:i:s'),

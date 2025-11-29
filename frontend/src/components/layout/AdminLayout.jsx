@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import AdminSidebar from '../admin/AdminSidebar'
+import NotificationBell from '../admin/NotificationBell'
 import './AdminLayout.css'
 
 function AdminLayout({ children }) {
@@ -38,6 +39,9 @@ function AdminLayout({ children }) {
               <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
             </svg>
             <input type="text" placeholder="Search" />
+          </div>
+          <div className="admin-header-actions">
+            <NotificationBell />
           </div>
         </div>
         <div className="admin-content-area">

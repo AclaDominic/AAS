@@ -26,6 +26,11 @@ class CourtReservationController extends Controller
             $query->whereBetween('reservation_date', [$request->start_date, $request->end_date]);
         }
 
+        // Filter by category
+        if ($request->has('category')) {
+            $query->where('category', $request->category);
+        }
+
         // Filter by court number
         if ($request->has('court_number')) {
             $query->forCourt($request->court_number);
@@ -70,6 +75,7 @@ class CourtReservationController extends Controller
                 'name' => $reservation->user->name,
                 'email' => $reservation->user->email,
             ],
+            'category' => $reservation->category,
             'court_number' => $reservation->court_number,
             'reservation_date' => $reservation->reservation_date->format('Y-m-d'),
             'start_time' => $reservation->start_time->format('Y-m-d H:i:s'),
@@ -107,6 +113,34 @@ class CourtReservationController extends Controller
                 'id' => $reservation->id,
                 'status' => $reservation->status,
                 'cancelled_at' => $reservation->cancelled_at->format('Y-m-d H:i:s'),
+            ],
+        ]);
+    }
+
+    /**
+     * Update reservation status (approve/confirm or mark as completed).
+     */
+    public function updateStatus(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'status' => 'required|in:PENDING,CONFIRMED,COMPLETED',
+        ]);
+
+        $reservation = CourtReservation::findOrFail($id);
+
+        if ($reservation->status === 'CANCELLED') {
+            return response()->json([
+                'message' => 'Cannot update status of a cancelled reservation.',
+            ], 400);
+        }
+
+        $reservation->update(['status' => $request->status]);
+
+        return response()->json([
+            'message' => 'Reservation status updated successfully.',
+            'reservation' => [
+                'id' => $reservation->id,
+                'status' => $reservation->status,
             ],
         ]);
     }

@@ -4,6 +4,7 @@ import api from '../../services/api'
 import './MemberPages.css'
 
 function CourtBooking() {
+  const [category, setCategory] = useState('BADMINTON_COURT')
   const [selectedDate, setSelectedDate] = useState('')
   const [slots, setSlots] = useState([])
   const [selectedSlot, setSelectedSlot] = useState(null)
@@ -22,10 +23,14 @@ function CourtBooking() {
   }, [])
 
   useEffect(() => {
-    if (selectedDate) {
+    if (selectedDate && category === 'BADMINTON_COURT') {
       fetchAvailableSlots()
+    } else if (category === 'GYM') {
+      // For gym, we don't need to fetch slots
+      setSlots([])
+      setSelectedSlot(null)
     }
-  }, [selectedDate])
+  }, [selectedDate, category])
 
   useEffect(() => {
     if (selectedSlot) {
@@ -53,6 +58,8 @@ function CourtBooking() {
   const fetchAvailableSlots = async () => {
     try {
       setLoading(true)
+      // For gym reservations, we might not need slots, but we'll still call the API
+      // The backend should handle gym reservations differently
       const response = await api.get(`/api/courts/available-slots?date=${selectedDate}`)
       setSlots(response.data.slots || [])
       setSelectedSlot(null)
@@ -99,9 +106,11 @@ function CourtBooking() {
       setBooking(true)
       setMessage(null)
 
-      const startTime = selectedDate + ' ' + selectedSlot + ':00'
+      // Format start time - both gym and badminton court use HH:mm format
+      const startTime = `${selectedDate} ${selectedSlot}:00`
       
       await api.post('/api/reservations', {
+        category: category,
         reservation_date: selectedDate,
         start_time: startTime,
         duration_minutes: selectedDuration,
@@ -135,13 +144,66 @@ function CourtBooking() {
   return (
     <MemberLayout>
       <div className="court-booking-container">
-        <h1 className="court-booking-title">Book Badminton Court</h1>
+        <h1 className="court-booking-title">Book Facility</h1>
 
         {message && (
           <div className={`court-booking-message ${message.type}`}>
             {message.text}
           </div>
         )}
+
+        {/* Category Selection */}
+        <div className="court-booking-field">
+          <label className="court-booking-label">Select Category</label>
+          <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                setCategory('BADMINTON_COURT')
+                setSelectedSlot(null)
+                setSelectedDuration(null)
+                setDurationOptions([])
+              }}
+              style={{
+                flex: 1,
+                padding: '16px 24px',
+                backgroundColor: category === 'BADMINTON_COURT' ? '#646cff' : 'rgba(255, 255, 255, 0.1)',
+                color: category === 'BADMINTON_COURT' ? 'white' : 'rgba(255, 255, 255, 0.8)',
+                border: `2px solid ${category === 'BADMINTON_COURT' ? '#646cff' : 'rgba(255, 255, 255, 0.2)'}`,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: category === 'BADMINTON_COURT' ? 'bold' : 'normal',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              🏸 Badminton Court
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCategory('GYM')
+                setSelectedSlot(null)
+                setSelectedDuration(null)
+                setDurationOptions([])
+              }}
+              style={{
+                flex: 1,
+                padding: '16px 24px',
+                backgroundColor: category === 'GYM' ? '#646cff' : 'rgba(255, 255, 255, 0.1)',
+                color: category === 'GYM' ? 'white' : 'rgba(255, 255, 255, 0.8)',
+                border: `2px solid ${category === 'GYM' ? '#646cff' : 'rgba(255, 255, 255, 0.2)'}`,
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: category === 'GYM' ? 'bold' : 'normal',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              💪 Gym
+            </button>
+          </div>
+        </div>
 
         {/* Date Selector */}
         <div className="court-booking-field">
@@ -156,14 +218,15 @@ function CourtBooking() {
           />
         </div>
 
-        {/* Time Slots Grid */}
-        {loading ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: '#ffffff' }}>Loading available slots...</div>
-        ) : slots.length === 0 ? (
-          <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)' }}>
-            No available slots for this date. The facility may be closed.
-          </div>
-        ) : (
+        {/* Time Slots Grid - Only show for badminton court */}
+        {category === 'BADMINTON_COURT' ? (
+          loading ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#ffffff' }}>Loading available slots...</div>
+          ) : slots.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'rgba(255, 255, 255, 0.6)' }}>
+              No available slots for this date. The facility may be closed.
+            </div>
+          ) : (
           <>
             <div style={{ marginBottom: '30px' }}>
               <h2 style={{ marginBottom: '20px', fontSize: '1.5rem', color: '#ffffff' }}>Available Time Slots</h2>
@@ -215,6 +278,54 @@ function CourtBooking() {
                 className="court-booking-button"
               >
                 {booking ? 'Booking...' : `Book Court for ${formatDuration(selectedDuration)}`}
+              </button>
+            )}
+          </>
+        )
+        ) : (
+          /* Gym Reservation - Direct time selection */
+          <>
+            <div className="court-booking-field">
+              <label className="court-booking-label">Select Start Time</label>
+              <input
+                type="time"
+                value={selectedSlot || ''}
+                onChange={(e) => {
+                  setSelectedSlot(e.target.value)
+                  setSelectedDuration(null)
+                  setDurationOptions([])
+                }}
+                className="court-booking-input"
+                style={{ maxWidth: '300px' }}
+              />
+            </div>
+
+            {selectedSlot && (
+              <div className="court-booking-field">
+                <label className="court-booking-label">Select Duration</label>
+                <select
+                  value={selectedDuration || ''}
+                  onChange={(e) => setSelectedDuration(parseInt(e.target.value))}
+                  className="court-booking-select"
+                  style={{ maxWidth: '300px' }}
+                >
+                  <option value="">Select duration</option>
+                  <option value="30">30 minutes</option>
+                  <option value="60">1 hour</option>
+                  <option value="90">1.5 hours</option>
+                  <option value="120">2 hours</option>
+                  <option value="180">3 hours</option>
+                </select>
+              </div>
+            )}
+
+            {selectedSlot && selectedDuration && (
+              <button
+                onClick={handleBooking}
+                disabled={booking}
+                className="court-booking-button"
+              >
+                {booking ? 'Booking...' : `Book Gym for ${formatDuration(selectedDuration)}`}
               </button>
             )}
           </>

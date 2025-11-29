@@ -10,6 +10,7 @@ class CourtReservation extends Model
 {
     protected $fillable = [
         'user_id',
+        'category',
         'court_number',
         'reservation_date',
         'start_time',
@@ -26,6 +27,11 @@ class CourtReservation extends Model
         'end_time' => 'datetime',
         'duration_minutes' => 'integer',
         'cancelled_at' => 'datetime',
+    ];
+
+    protected $attributes = [
+        'category' => 'BADMINTON_COURT',
+        'status' => 'PENDING',
     ];
 
     /**
